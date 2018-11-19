@@ -9,23 +9,25 @@ public class Sort {
     }
 
     public static void sortUnsigned(long[] data, int offset, int len) {
-        int left = offset, right = offset + len - 1;
-        while(true) {
-            while (left < data.length && data[left] >= 0) {
-                left++;
+        int[] histogram = new int[257];
+        int shift = 0;
+        long mask = 0xFF;
+        long[] buffer = new long[Math.min(len, data.length)];
+        while (shift < Long.SIZE) {
+            Arrays.fill(histogram, 0);
+            for (int i = offset; i + offset < buffer.length; ++i) {
+                ++histogram[(int)((data[i] & mask) >>> shift) + 1];
             }
-            while (right > 0 && data[right] < 0) {
-                right--;
+            for (int i = 0; i + 1 < histogram.length; ++i) {
+                histogram[i + 1] += histogram[i];
             }
-            if (left >= right) {
-                break;
+            for (int i = offset; i + offset < buffer.length; ++i) {
+                buffer[histogram[(int)((data[i] & mask) >>> shift)]++] = data[i];
             }
-            long temp = data[left];
-            data[left++] = data[right];
-            data[right--] = temp;
+            System.arraycopy(buffer, 0, data, offset, buffer.length);
+            shift += 8;
+            mask <<= 8;
         }
-        Arrays.sort(data, offset, left);
-        Arrays.sort(data, left, len);
     }
 
 }
