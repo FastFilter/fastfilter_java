@@ -41,13 +41,36 @@ public class CountingBloom implements Filter {
         counts = new long[arraySize];
     }
 
-    private void add(long key) {
+    @Override
+    public boolean supportsAdd() {
+        return true;
+    }
+
+    @Override
+    public void add(long key) {
         long hash = Hash.hash64(key, seed);
         int a = (int) (hash >>> 32);
         int b = (int) hash;
         for (int i = 0; i < k; i++) {
             int index = Hash.reduce(a, arraySize * 16);
             counts[index / 16] += getBit(index);
+            a += b;
+        }
+    }
+
+    @Override
+    public boolean supportsRemove() {
+        return true;
+    }
+
+    @Override
+    public void remove(long key) {
+        long hash = Hash.hash64(key, seed);
+        int a = (int) (hash >>> 32);
+        int b = (int) hash;
+        for (int i = 0; i < k; i++) {
+            int index = Hash.reduce(a, arraySize * 16);
+            counts[index / 16] -= getBit(index);
             a += b;
         }
     }
@@ -69,6 +92,15 @@ public class CountingBloom implements Filter {
             a += b;
         }
         return true;
+    }
+
+    @Override
+    public long cardinality() {
+        long sum = 0;
+        for (long x : counts) {
+            sum += Long.bitCount(x);
+        }
+        return sum;
     }
 
 }
