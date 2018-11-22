@@ -1,5 +1,7 @@
 package org.fastfilter.gcs;
 
+import java.util.Arrays;
+
 /**
  * A simple bit buffer. It is partially optimized for reading, but writing is
  * relatively slow. Writing will only add bits (bitwise or with existing bits).
@@ -31,6 +33,19 @@ public class BitBuffer {
 
     public void seek(int pos) {
         this.pos = pos;
+    }
+
+    public void clear() {
+        Arrays.fill(data, 0);
+    }
+
+    public void skipGolombRice(int shift) {
+        pos = skipGolombRice(pos, shift);
+    }
+
+    public int skipGolombRice(int pos, int shift) {
+        int q = readUntilZero(pos);
+        return pos + q + 1 + shift;
     }
 
     /**
