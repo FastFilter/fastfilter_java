@@ -20,4 +20,49 @@ public interface Filter {
      */
     long getBitCount();
 
+    /**
+     * Whether the add operation (after construction) is supported.
+     *
+     * @return true if yes
+     */
+    default boolean supportsAdd() {
+        return false;
+    }
+
+    /**
+     * Add a key.
+     *
+     * @param key the key
+     */
+    default void add(long key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Whether the remove operation is supported.
+     *
+     * @return true if yes
+     */
+    default boolean supportsRemove() {
+        return false;
+    }
+
+    /**
+     * Remove a key.
+     *
+     * @param key the key
+     */
+    default void remove(long key) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Get the number of set bits. This should be 0 for an empty filter.
+     *
+     * @param the number of set bits, or -1 if unknown
+     */
+    default long cardinality() {
+        return -1;
+    }
+
 }

@@ -42,7 +42,13 @@ public class Bloom implements Filter {
         data = new long[arraySize];
     }
 
-    private void add(long key) {
+    @Override
+    public boolean supportsAdd() {
+        return true;
+    }
+
+    @Override
+    public void add(long key) {
         long hash = Hash.hash64(key, seed);
         int a = (int) (hash >>> 32);
         int b = (int) hash;

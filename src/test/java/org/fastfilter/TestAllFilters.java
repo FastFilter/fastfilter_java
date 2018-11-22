@@ -1,5 +1,7 @@
 package org.fastfilter;
 
+import static org.junit.Assert.assertEquals;
+
 import org.fastfilter.Filter;
 import org.fastfilter.FilterType;
 import org.fastfilter.utils.RandomGenerator;
@@ -143,14 +145,25 @@ public class TestAllFilters {
         double fpp = (double) falsePositives / len;
         long bitCount = f.getBitCount();
         double bitsPerKey = (double) bitCount / len;
+        if (falseNegatives > 0) {
+            throw new AssertionError("false negatives: " + falseNegatives);
+        }
+        double nanosPerRemove = -1;
+        if (f.supportsRemove()) {
+            time = System.nanoTime();
+            for (int i = 0; i < len; i++) {
+                f.remove(keys[i]);
+            }
+            time = System.nanoTime() - time;
+            nanosPerRemove = time / len;
+            assertEquals(0, f.cardinality());
+        }
         if (log) {
             System.out.println(type + " fpp: " + fpp +
                     " bits/key: " + bitsPerKey +
                     " add ns/key: " + nanosPerAdd +
-                    " lookup ns/key: " + nanosPerLookup);
-        }
-        if (falseNegatives > 0) {
-            throw new AssertionError("false negatives: " + falseNegatives);
+                    " lookup ns/key: " + nanosPerLookup + 
+                    (nanosPerRemove < 0 ? "" : (" remove ns/key: " + nanosPerRemove)));
         }
     }
 

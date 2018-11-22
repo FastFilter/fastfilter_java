@@ -49,7 +49,13 @@ public class BlockedBloom implements Filter {
         data = new long[(int) (blocks * LONGS_PER_BLOCK) + 8];
     }
 
-    void add(long key) {
+    @Override
+    public boolean supportsAdd() {
+        return true;
+    }
+
+    @Override
+    public void add(long key) {
         long hash = Hash.hash64(key, seed);
         int start = Hash.reduce((int) hash, blocks) * LONGS_PER_BLOCK;
         int a = (int) hash;
