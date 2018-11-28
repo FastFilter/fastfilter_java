@@ -5,11 +5,14 @@ import org.fastfilter.utils.Hash;
 
 /**
  * A succinct counting Bloom filter.
- * It uses almost half the space of a regular counting Bloom filter,
- * and lookup is faster (exactly as fast as with a regular Bloom filter).
  *
- * Remove isn't implemented yet.
- * Adding entries is relatively slow (about 20 times slower than lookup).
+ * Compared to a regular Bloom filter, lookup speed is exactly the same (the
+ * data structure for lookup is identical), but it supports removing entries. It
+ * needs a bit more than twice the space of a regular Bloom filter.
+ *
+ * Compared to a counting Bloom filter, lookup speed is much faster, and space
+ * usage is about half. However, adding and removing entries is about half as
+ * fast.
  */
 public class SuccinctCountingBloom implements Filter {
 
@@ -157,12 +160,7 @@ public class SuccinctCountingBloom implements Filter {
         }
         data.set(x);
         int bitsBefore = Long.bitCount(m & (-1L >>> (63 - x)));
-        int before;
-        if (bitsBefore == 0) {
-            before = 0;
-        } else {
-            before = Select.selectInLong(c, bitsBefore - 1) + 1;
-        }
+        int before = Select.selectInLong((c << 1) | 1, bitsBefore);
         int insertAt = before - (int) d;
         long mask = (1L << insertAt) - 1;
         long left = c & ~mask;
@@ -222,22 +220,16 @@ public class SuccinctCountingBloom implements Filter {
             return;
         }
         int bitsBefore = Long.bitCount(m & (-1L >>> (63 - x)));
-        int before;
-        if (bitsBefore == 0) {
-            before = -1;
-        } else {
-            before = Select.selectInLong(c, bitsBefore - 1);
-        }
-        int removeAt = Math.max(0, before - 1) + 64 * group;
+        int before = Select.selectInLong((c << 1) | 1, bitsBefore) - 1;
+        int removeAt = Math.max(0, before - 1);
         // remove the bit from the counter
         long mask = (1L << removeAt) - 1;
         long left = (c >>> 1) & ~mask;
         long right= c & mask;
         counts.setLong(group, left | right);
         long removed = (c >> removeAt) & 1;
-        if (removed == 1) {
-            data.clear(x);
-        }
+        // possibly reset the data bit
+        data.setLong(group, m & ~(removed << x));
     }
 
     private int readCount(int x) {
@@ -260,13 +252,11 @@ public class SuccinctCountingBloom implements Filter {
         long y = ((c << (63 - bitPos)) << 1) | (1L << (63 - bitPos));
         return Long.numberOfLeadingZeros(y) + 1;
     }
-    boolean test;
 
     private void verifyCounts(int from, int to) {
         if (!VERIFY_COUNTS) {
             return;
         }
-        test=true;
         for (int i = Math.max(0, from); i < to && i < realCounts.length; i++) {
             if (readCount(i) != realCounts[i]) {
                 throw new AssertionError(" at " + i + " " + (i & 63) + " got " + readCount(i) + " expected " + realCounts[i]);
