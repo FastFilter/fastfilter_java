@@ -3,7 +3,7 @@ package org.fastfilter;
 import org.fastfilter.bloom.BlockedBloom;
 import org.fastfilter.bloom.Bloom;
 import org.fastfilter.bloom.CountingBloom;
-import org.fastfilter.bloom.SuccintCountingBloom;
+import org.fastfilter.bloom.SuccinctCountingBloom;
 import org.fastfilter.cuckoo.Cuckoo16;
 import org.fastfilter.cuckoo.Cuckoo8;
 import org.fastfilter.cuckoo.CuckooPlus16;
@@ -20,10 +20,10 @@ import org.fastfilter.xorplus.XorPlus8;
  * The list of supported approximate membership implementations.
  */
 public enum FilterType {
-    SUCCINT_COUNTING_BLOOM {
+    SUCCINCT_COUNTING_BLOOM {
         @Override
         public Filter construct(long[] keys, int setting) {
-            return SuccintCountingBloom.construct(keys, setting);
+            return SuccinctCountingBloom.construct(keys, setting);
         }
     },
     COUNTING_BLOOM {
