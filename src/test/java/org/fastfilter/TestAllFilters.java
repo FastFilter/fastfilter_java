@@ -162,7 +162,7 @@ public class TestAllFilters {
             System.out.println(type + " fpp: " + fpp +
                     " bits/key: " + bitsPerKey +
                     " add ns/key: " + nanosPerAdd +
-                    " lookup ns/key: " + nanosPerLookup + 
+                    " lookup ns/key: " + nanosPerLookup +
                     (nanosPerRemove < 0 ? "" : (" remove ns/key: " + nanosPerRemove)));
         }
     }
