@@ -55,6 +55,20 @@
                     <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>
+			<plugin>
+				<!-- mvn org.pitest:pitest-maven:mutationCoverage -->
+    			<groupId>org.pitest</groupId>
+    			<artifactId>pitest-maven</artifactId>
+    			<version>1.4.3</version>
+				<configuration>
+        			<targetClasses>
+            			<param>org.fastfilter.gcs.Sort</param>
+       				</targetClasses>
+        			<targetTests>
+            			<param>org.fastfilter.gcs.SortTest</param>
+        			</targetTests>
+    			</configuration>    			
+			</plugin>            
         </plugins>
     </build>
 </project>
