@@ -1,8 +1,10 @@
 package org.fastfilter.gcs;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
 import java.util.Random;
 
-import org.fastfilter.gcs.Sort;
 import org.junit.Test;
 
 public class SortTest {
@@ -52,6 +54,42 @@ public class SortTest {
             Sort.sortUnsigned(data);
             // sortUnsignedSimple(data);
             for (int i = 1; i < data.length; i++) {
+                if (Long.compareUnsigned(data[i - 1], data[i]) > 0) {
+                    throw new AssertionError("index " + i);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void sortUnsignedShifted() {
+        Random r = new Random(1);
+        for (int test = 0; test < 1000; test++) {
+            int len = r.nextBoolean() ? r.nextInt(10) : r.nextInt(1000);
+            int rotate = r.nextInt(60);
+            long[] data = new long[len];
+            long xor = 0;
+            for (int i = 0; i < len; i++) {
+                long x = Long.rotateLeft((r.nextInt(5) - 2), rotate);
+                data[i] = x;
+                xor ^= x;
+            }
+            long[] d2 = Arrays.copyOf(data, data.length);
+            int offset = len <= 0 ? 0 : r.nextInt(len);
+            int sortLen = len <= 0 ? 0 : r.nextInt(len);
+            Sort.sortUnsigned(data, offset, sortLen);
+            // sortUnsignedSimple(data);
+            long xor2 = 0;
+            for(long x : data) {
+                xor2 ^= x;
+            }
+            assertEquals(xor2, xor);
+            for (int i = 0; i < len; i++) {
+                if (i < offset || i > offset + len) {
+                    assertEquals(d2[i], data[i]);
+                }
+            }
+            for (int i = offset + 1; i < Math.min(offset + sortLen, data.length); i++) {
                 if (Long.compareUnsigned(data[i - 1], data[i]) > 0) {
                     throw new AssertionError("index " + i);
                 }
