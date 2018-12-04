@@ -52,8 +52,8 @@ public class CountingBloom implements Filter {
         int a = (int) (hash >>> 32);
         int b = (int) hash;
         for (int i = 0; i < k; i++) {
-            int index = Hash.reduce(a, arraySize * 16);
-            counts[index / 16] += getBit(index);
+            int index = Hash.reduce(a, arraySize << 4);
+            counts[index >>> 4] += getBit(index);
             a += b;
         }
     }
@@ -69,14 +69,14 @@ public class CountingBloom implements Filter {
         int a = (int) (hash >>> 32);
         int b = (int) hash;
         for (int i = 0; i < k; i++) {
-            int index = Hash.reduce(a, arraySize * 16);
-            counts[index / 16] -= getBit(index);
+            int index = Hash.reduce(a, arraySize << 4);
+            counts[index >>> 4] -= getBit(index);
             a += b;
         }
     }
 
     private static long getBit(int index) {
-        return 1L << (index * 4);
+        return 1L << (index << 2);
     }
 
     @Override
@@ -85,8 +85,8 @@ public class CountingBloom implements Filter {
         int a = (int) (hash >>> 32);
         int b = (int) hash;
         for (int i = 0; i < k; i++) {
-            int index = Hash.reduce(a, arraySize * 16);
-            if ((counts[index / 16] & (0xf * getBit(index))) == 0) {
+            int index = Hash.reduce(a, arraySize << 4);
+            if (((counts[index >>> 4] >>> (index << 2)) & 0xf) == 0) {
                 return false;
             }
             a += b;
