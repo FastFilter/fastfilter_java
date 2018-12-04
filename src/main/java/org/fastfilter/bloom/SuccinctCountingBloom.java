@@ -1,5 +1,7 @@
 package org.fastfilter.bloom;
 
+import java.math.BigInteger;
+
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
@@ -73,7 +75,7 @@ public class SuccinctCountingBloom implements Filter {
         arraySize = (int) ((bits + 63) / 64);
         data = new BitField(64 * (arraySize + 10));
         counts = new BitField(64 * (arraySize + 10));
-        overflow = new long[100 + arraySize / 100 * 4];
+        overflow = new long[100 + arraySize / 100 * 12];
         for (int i = 0; i < overflow.length; i += 4) {
             overflow[i] = i + 4;
         }
@@ -91,7 +93,7 @@ public class SuccinctCountingBloom implements Filter {
         int a = (int) (hash >>> 32);
         int b = (int) hash;
         for (int i = 0; i < k; i++) {
-            int index = Hash.reduce(a, arraySize) * 64 + (a & 63);
+            int index = (Hash.reduce(a, arraySize) << 6) + (a & 63);
             if (VERIFY_COUNTS) {
                 realCounts[index]++;
             }
@@ -111,7 +113,7 @@ public class SuccinctCountingBloom implements Filter {
         int a = (int) (hash >>> 32);
         int b = (int) hash;
         for (int i = 0; i < k; i++) {
-            int index = Hash.reduce(a, arraySize) * 64 + (a & 63);
+            int index = (Hash.reduce(a, arraySize) << 6) + (a & 63);
             if (VERIFY_COUNTS) {
                 realCounts[index]--;
             }
