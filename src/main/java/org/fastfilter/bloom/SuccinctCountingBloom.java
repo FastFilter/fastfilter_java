@@ -1,7 +1,5 @@
 package org.fastfilter.bloom;
 
-import java.math.BigInteger;
-
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
@@ -204,7 +202,7 @@ public class SuccinctCountingBloom implements Filter {
             long n = overflow[index + bitIndex / 16];
             overflow[index + bitIndex / 16] = n - getBit(bitIndex);
             n >>>= 4 * (bitIndex & 0xf);
-            if ((n & 15) == 1) {
+            if ((n & 0xf) == 1) {
                 data.clear(x);
             }
             if (count < 64) {
