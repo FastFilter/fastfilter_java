@@ -1,7 +1,6 @@
 package org.fastfilter.gcs;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class BitBufferDirect {
 
@@ -11,14 +10,14 @@ public class BitBufferDirect {
 
     public BitBufferDirect(long bits) {
         this.data = ByteBuffer.allocateDirect((int)((bits + 7) / 8));
-        this.data.order(ByteOrder.nativeOrder());
+        // this.data.order(ByteOrder.nativeOrder());
     }
 
     public BitBufferDirect(byte[] byteArray) {
         this.data = ByteBuffer.allocateDirect(byteArray.length);
         data.put(byteArray);
         data.flip();
-        this.data.order(ByteOrder.nativeOrder());
+        // this.data.order(ByteOrder.nativeOrder());
     }
 
     public int position() {
@@ -124,26 +123,6 @@ public class BitBufferDirect {
         long current = data.getLong((int) (pos >>> 3));
         long x = ~current << ((pos & 7));
         return Long.numberOfLeadingZeros(x);
-    	
-//        int remainingBits = 64 - (pos & 63);
-//        int index = pos >>> 6;
-//        long x = data.getLong(index << 3) << (64 - remainingBits);
-//        int count = Long.numberOfLeadingZeros(~x);
-//        if (count < remainingBits) {
-//            return count;
-//        }
-//        return readUntilZeroMore(count, index);
-    }
-
-    private int readUntilZeroMore(int count, int index) {
-        while (true) {
-            long x = data.getLong(++index << 3);
-            if (x == -1L) {
-                count += 64;
-                continue;
-            }
-            return count + Long.numberOfLeadingZeros(~x);
-        }
     }
 
     public void write(BitBufferDirect bits) {

@@ -137,11 +137,13 @@ public class BitBufferTest {
 
     @Test
     public void testNumberRoundtrip() {
+        // with regular BitBuffer, the max bit count is 65 (that is, 0..64)
+        int maxBitCount = 58;
         Random r = new Random(1);
         BitBufferDirect buff = new BitBufferDirect(8 * 1024 * 1024);
         for (int i = 0; i < 1000; i++) {
             long val = r.nextLong();
-            int bitCount = r.nextInt(65);
+            int bitCount = r.nextInt(maxBitCount);
             if (bitCount < 64) {
                 val &= ((1L << bitCount) - 1);
             }
@@ -151,7 +153,7 @@ public class BitBufferTest {
         r = new Random(1);
         for (int i = 0; i < 1000; i++) {
             long val = r.nextLong();
-            int bitCount = r.nextInt(65);
+            int bitCount = r.nextInt(maxBitCount);
             if (bitCount < 64) {
                 val &= ((1L << bitCount) - 1);
             }
@@ -205,35 +207,6 @@ public class BitBufferTest {
         buff.seek(0);
         for (int i = 1; i < 100; i++) {
             assertEquals(i, buff.readEliasDelta());
-        }
-    }
-
-    @Test
-    public void testWriteBuffer2() {
-        BitBufferDirect buff = new BitBufferDirect(8000);
-        for (int i = 1; i < 100; i++) {
-            BitBufferDirect b = new BitBufferDirect(100);
-//            b.writeEliasDelta(i);
-//            assertEquals(b.position(), BitBufferDirect.getEliasDeltaSize(i));
-            for (int j = 0; j < i; j++) {
-                b.writeBit(1);
-            }
-            b.writeBit(0);
-            buff.write(b);
-        }
-        buff.seek(0);
-        for (int i = 1; i < 100; i++) {
-//            if (i != buff.readEliasDelta()) {
-//                System.out.println("??");
-//            }
-//            assertEquals(i, buff.readEliasDelta());
-            for (int j = 0; j < i; j++) {
-              if (1 != buff.readBit()) {
-              System.out.println("??");
-          }
-//                assertEquals(1, buff.readBit());
-            }
-            assertEquals(0, buff.readBit());
         }
     }
 

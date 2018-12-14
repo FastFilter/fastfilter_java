@@ -9,6 +9,7 @@ import org.fastfilter.cuckoo.Cuckoo8;
 import org.fastfilter.cuckoo.CuckooPlus16;
 import org.fastfilter.cuckoo.CuckooPlus8;
 import org.fastfilter.gcs.GolombCompressedSet;
+import org.fastfilter.gcs.GolombCompressedSet2;
 import org.fastfilter.mphf.MPHFilter;
 import org.fastfilter.xor.Xor16;
 import org.fastfilter.xor.Xor8;
@@ -102,6 +103,12 @@ public enum FilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return GolombCompressedSet.construct(keys, setting);
+        }
+    },
+    GCS2 {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return GolombCompressedSet2.construct(keys, setting);
         }
     },
     MPHF {
