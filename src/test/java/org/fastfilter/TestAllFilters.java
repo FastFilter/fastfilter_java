@@ -86,11 +86,13 @@ public class TestAllFilters {
 
     public static void main(String... args) {
         for (int size = 1_000_000; size <= 8_000_000; size *= 2) {
+            System.out.println("size " + size);
             testAll(size, true);
             System.out.println();
         }
         System.out.println();
         for (int size = 10_000_000; size <= 80_000_000; size *= 2) {
+            System.out.println("size " + size);
             testAll(size, true);
             System.out.println();
         }

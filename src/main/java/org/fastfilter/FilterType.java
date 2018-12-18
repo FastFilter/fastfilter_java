@@ -1,6 +1,7 @@
 package org.fastfilter;
 
 import org.fastfilter.bloom.BlockedBloom;
+import org.fastfilter.bloom.SuccinctCountingBlockedBloom;
 import org.fastfilter.bloom.Bloom;
 import org.fastfilter.bloom.CountingBloom;
 import org.fastfilter.bloom.SuccinctCountingBloom;
@@ -21,10 +22,10 @@ import org.fastfilter.xorplus.XorPlus8;
  * The list of supported approximate membership implementations.
  */
 public enum FilterType {
-    SUCCINCT_COUNTING_BLOOM {
+    BLOOM {
         @Override
         public Filter construct(long[] keys, int setting) {
-            return SuccinctCountingBloom.construct(keys, setting);
+            return Bloom.construct(keys, setting);
         }
     },
     COUNTING_BLOOM {
@@ -33,16 +34,22 @@ public enum FilterType {
             return CountingBloom.construct(keys, setting);
         }
     },
-    BLOOM {
+    SUCCINCT_COUNTING_BLOOM {
         @Override
         public Filter construct(long[] keys, int setting) {
-            return Bloom.construct(keys, setting);
+            return SuccinctCountingBloom.construct(keys, setting);
         }
     },
     BLOCKED_BLOOM {
         @Override
         public Filter construct(long[] keys, int setting) {
             return BlockedBloom.construct(keys, setting);
+        }
+    },
+    SUCCINCT_COUNTING_BLOCKED_BLOOM {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return SuccinctCountingBlockedBloom.construct(keys, setting);
         }
     },
     XOR_SIMPLE {
