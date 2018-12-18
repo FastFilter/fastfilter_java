@@ -4,8 +4,9 @@ import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
 /**
- * A blocked bloom filter. I little bit faster, but needs more space. Not that
- * useful beyond about 20 bits per key, as fpp doesn't decreased further.
+ * A blocked Bloom filter. Compared to a regular Bloom filter, it is little bit
+ * faster, but needs more space. Not that useful beyond about 20 bits per key,
+ * as fpp doesn't decreased further.
  */
 public class BlockedBloom implements Filter {
 
