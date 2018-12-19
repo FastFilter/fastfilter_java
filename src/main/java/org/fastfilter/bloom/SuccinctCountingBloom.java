@@ -146,13 +146,12 @@ public class SuccinctCountingBloom implements Filter {
                 }
                 long count = 64;
                 c = 0x8000000000000000L | (count << 32) | index;
-                counts.setLong(group, c);
             } else {
                 // already
                 index = (int) (c & 0x0fffffff);
                 c += 1L << 32;
-                counts.setLong(group, c);
             }
+            counts.setLong(group, c);
             int bitIndex = x & 63;
             overflow[index + bitIndex / 16] += getBit(bitIndex);
             data.set(x);
