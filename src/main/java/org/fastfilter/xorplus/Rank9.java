@@ -45,7 +45,7 @@ public class Rank9 {
         this.bits = bits;
         long length = bits.length * 64;
         int numWords = (int) ((length + 63) / 64);
-        final int numCounts = (int) ((length + 8 * 64 - 1) / (8 * 64)) * 2;
+        int numCounts = (int) ((length + 8 * 64 - 1) / (8 * 64)) * 2;
         counts = new long[numCounts + 1];
         long c = 0;
         int pos = 0;

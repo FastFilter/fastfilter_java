@@ -349,10 +349,7 @@ public class XorPlus8 implements Filter {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             DataOutputStream d = new DataOutputStream(out);
             d.writeInt(size);
-            d.writeInt(arrayLength);
-            d.writeInt(blockLength);
             d.writeLong(seed);
-            d.writeInt(bitCount);
             d.writeInt(fingerprints.length);
             d.write(fingerprints);
             rank.write(d);
@@ -366,10 +363,10 @@ public class XorPlus8 implements Filter {
         try {
             DataInputStream din = new DataInputStream(in);
             size = din.readInt();
-            arrayLength = din.readInt();
-            blockLength = din.readInt();
+            arrayLength = getArrayLength(size);
+            bitCount = arrayLength * BITS_PER_FINGERPRINT;
+            blockLength = arrayLength / HASHES;
             seed = din.readLong();
-            bitCount = din.readInt();
             int fingerprintLength = din.readInt();
             fingerprints = new byte[fingerprintLength];
             din.readFully(fingerprints);
