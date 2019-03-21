@@ -1,5 +1,10 @@
 package org.fastfilter.xorplus;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.BitSet;
 
 import org.fastfilter.Filter;
@@ -338,5 +343,41 @@ public class XorPlus8 implements Filter {
     private int fingerprint(long hash) {
         return (int) (hash & ((1 << BITS_PER_FINGERPRINT) - 1));
     }
+
+    public byte[] getData() {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            DataOutputStream d = new DataOutputStream(out);
+            d.writeInt(size);
+            d.writeInt(arrayLength);
+            d.writeInt(blockLength);
+            d.writeLong(seed);
+            d.writeInt(bitCount);
+            d.writeInt(fingerprints.length);
+            d.write(fingerprints);
+            rank.write(d);
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public XorPlus8(InputStream in) {
+        try {
+            DataInputStream din = new DataInputStream(in);
+            size = din.readInt();
+            arrayLength = din.readInt();
+            blockLength = din.readInt();
+            seed = din.readLong();
+            bitCount = din.readInt();
+            int fingerprintLength = din.readInt();
+            fingerprints = new byte[fingerprintLength];
+            din.readFully(fingerprints);
+            rank = new Rank9(din);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }

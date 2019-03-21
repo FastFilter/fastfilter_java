@@ -18,6 +18,9 @@
  */
 package org.fastfilter.xorplus;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.BitSet;
 
@@ -112,6 +115,28 @@ public class Rank9 {
 
     public int getBitCount() {
         return bits.length * 64 + counts.length * 64;
+    }
+
+    public void write(DataOutputStream d) throws IOException {
+        d.writeInt(bits.length);
+        for (int i = 0; i < bits.length; i++) {
+            d.writeLong(bits[i]);
+        }
+        d.writeInt(counts.length);
+        for (int i = 0; i < counts.length; i++) {
+            d.writeLong(counts[i]);
+        }
+    }
+
+    public Rank9(DataInputStream in) throws IOException {
+        bits = new long[in.readInt()];
+        for (int i = 0; i < bits.length; i++) {
+            bits[i] = in.readLong();
+        }
+        counts = new long[in.readInt()];
+        for (int i = 0; i < counts.length; i++) {
+            counts[i] = in.readLong();
+        }
     }
 
 }
