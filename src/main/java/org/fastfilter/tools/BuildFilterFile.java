@@ -19,12 +19,14 @@ public class BuildFilterFile {
         if (args.length != 1) {
             System.out.println("Usage: java " + BuildFilterFile.class.getName() + " <textFile>\n"
                     + "Builds a .filter file from a text file that contains SHA-1 hashes and counts.");
+            // see also https://haveibeenpwned.com/passwords
             return;
         }
         String textFile = args[0];
         String filterFileName = textFile + ".filter";
         long start = System.nanoTime();
-        LineNumberReader lineReader = new LineNumberReader(new FileReader(textFile, Charset.forName("LATIN1")));
+        LineNumberReader lineReader = new LineNumberReader(
+                new FileReader(new File(textFile), Charset.forName("LATIN1")));
         new File(filterFileName).delete();
         RandomAccessFile out = new RandomAccessFile(filterFileName, "rw");
         int lines = 0;
@@ -50,7 +52,7 @@ public class BuildFilterFile {
             }
             lastHash = hash;
             int dot = line.lastIndexOf(':');
-            int count = Integer.parseInt(line, dot + 1, line.length(), 10);
+            int count = Integer.parseInt(line.substring(dot + 1), 10);
             // set the lowest bit to 0
             long key = hash ^ (hash & 1);
             // if common, set the lowest bit
@@ -71,7 +73,8 @@ public class BuildFilterFile {
         out.close();
     }
 
-    private static void writeSegment(ArrayList<Long> keys, int segment, RandomAccessFile out) throws IOException {
+    private static void writeSegment(ArrayList<Long> keys, int segment,
+            RandomAccessFile out) throws IOException {
         long[] array = new long[keys.size()];
         for(int i=0; i<keys.size(); i++) {
             array[i] = keys.get(i);
