@@ -1,8 +1,10 @@
 package org.fastfilter.tools;
 
+import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
@@ -25,8 +27,8 @@ public class BuildFilterFile {
         String textFile = args[0];
         String filterFileName = textFile + ".filter";
         long start = System.nanoTime();
-        LineNumberReader lineReader = new LineNumberReader(
-                new FileReader(new File(textFile), Charset.forName("LATIN1")));
+        LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(
+                new BufferedInputStream(new FileInputStream(textFile)), Charset.forName("LATIN1")));
         new File(filterFileName).delete();
         RandomAccessFile out = new RandomAccessFile(filterFileName, "rw");
         int lines = 0;
