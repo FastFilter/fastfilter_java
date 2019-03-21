@@ -6,6 +6,10 @@ public class Hash {
 
     private static Random random = new Random();
 
+    public static void setSeed(long seed) {
+        random.setSeed(seed);
+    }
+
     public static long hash64(long x, long seed) {
         x += seed;
         x = (x ^ (x >>> 33)) * 0xff51afd7ed558ccdL;
@@ -20,7 +24,7 @@ public class Hash {
 
     /**
      * Shrink the hash to a value 0..n. Kind of like modulo, but using
-     * multiplication.
+     * multiplication and shift, which are faster to compute.
      *
      * @param hash the hash
      * @param n the maximum of the result
