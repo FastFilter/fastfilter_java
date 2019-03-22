@@ -37,7 +37,7 @@ To save disk space, you can extract the file on the fly (Mac OS X using Keka):
     /Applications/Keka.app/Contents/Resources/keka7z e -so
         pass.7z | java -cp target/fastfilter*.jar org.fastfilter.tools.BuildFilterFile filter.bin
 
-Both will generate a file named pass.txt.filter (640 MB).
+Both will generate a file named filter.bin (640 MB).
 
 ## Check Passwords
 
