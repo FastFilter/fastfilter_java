@@ -1,12 +1,12 @@
 package org.fastfilter.tools;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
@@ -19,23 +19,19 @@ public class BuildFilterFile {
 
     public static void main(String... args) throws IOException {
         if (args.length != 1) {
-            System.out.println("Usage: java " + BuildFilterFile.class.getName() + " <textFile>\n"
-                    + "Builds a .filter file from a text file that contains SHA-1 hashes and counts.\n"
-                    + "You can get the hash file from https://haveibeenpwned.com/passwords\n"
-                    + "It needs to be a list of SHA-1 hashes, ordered by hash, line format <hash>:<count>.");
+            System.out.println("Usage: java " + BuildFilterFile.class.getName() + " <filterFile>\n"
+                    + "Reads a text file from standard in and writes a filter file.\n"
+                    + "The input is a text file that contains sorted SHA-1 hashes and counts.\n"
+                    + "You may get the file from https://haveibeenpwned.com/passwords.");
             return;
         }
-        String textFile = args[0];
-        String filterFileName = textFile + ".filter";
+        LineNumberReader lineReader = new LineNumberReader(
+                new InputStreamReader(new BufferedInputStream(System.in), Charset.forName("LATIN1")));
         long start = System.nanoTime();
-        LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(
-                new BufferedInputStream(new FileInputStream(textFile)), Charset.forName("LATIN1")));
-        new File(filterFileName).delete();
-        RandomAccessFile out = new RandomAccessFile(filterFileName, "rw");
+        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(args[0])));
+        long outPos = 0;
         int lines = 0;
         long[] segmentStarts = new long[1 << SEGMENT_BITS];
-        // header
-        out.write(new byte[8 << SEGMENT_BITS]);
         int currentSegment = 0;
         long lastHash = 0;
         ArrayList<Long> keys = new ArrayList<Long>();
@@ -66,8 +62,10 @@ public class BuildFilterFile {
             }
             int segment = (int) (key >>> (64 - SEGMENT_BITS));
             if (segment != currentSegment) {
-                segmentStarts[currentSegment] = out.getFilePointer();
-                out.write(getSegment(keys));
+                segmentStarts[currentSegment] = outPos;
+                byte[] data = getSegment(keys);
+                out.write(data);
+                outPos += data.length;
                 keys.clear();
                 currentSegment = segment;
             }
@@ -77,11 +75,10 @@ public class BuildFilterFile {
             }
             keys.add(key);
         }
-        segmentStarts[currentSegment] = out.getFilePointer();
+        segmentStarts[currentSegment] = outPos;
         out.write(getSegment(keys));
         lineReader.close();
-        out.seek(0);
-        for(long s : segmentStarts) {
+        for (long s : segmentStarts) {
             out.writeLong(s);
         }
         out.close();
