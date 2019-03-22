@@ -1,6 +1,7 @@
-Fast Approximate Membership Filters (Java).
+# Fast Approximate Membership Filters.
 
 The following filter types are currently implemented:
+
 * Bloom filter: the 'standard' algorithm
 * Blocked Bloom filter: faster than regular Bloom filters, but need a bit more space
 * Counting Bloom filter: allow removing entries, but need 4 times more space
@@ -13,7 +14,7 @@ The following filter types are currently implemented:
 * Xor filter: 8 and 16 bit variants; needs less space than cuckoo filters, with faster lookup
 * Xor+ filter: 8 and 16 bit variants; compressed xor filter
 
-# Password Look
+# Password Look Tool
 
 Included is a tool to build a filter from a list of known password (hashes), and a tool to do lookups. That way, the password list can be queried locally, without requiring a large file. The filter is only 650 MB, instead of the original file which is 11 GB. At the cost of some false positives (unknown passwords reported as known, with about 1% probability).
 
