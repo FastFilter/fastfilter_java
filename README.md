@@ -49,4 +49,4 @@ which means it was seen 10 times or more often.
 Passwords not in the list will show "Not found" with more than 99% probability,
 and with less than 1% probability "Found" or "Found; common".
 
-Internally, the tool uses a xor+ filter (see above) with 8 bits per fingerprint. One bit of the key is either 0 (regular) or 1 (common), and so two lookups are made per password. Because two lookups are made, the false positive rate is twice of what it would be with just one lookup (0.0078 instead of 0.0039). A regular Bloom filter with the same guarantees would be ~760 MB.
+Internally, the tool uses a xor+ filter (see above) with 8 bits per fingerprint. Actually the 1024 smaller filters (segmens) are made, and the highest 10 bits of the key is the segment id. The lowest bit of the key is set to either 0 (regular) or 1 (common), and so two lookups are made per password. Because of that, the false positive rate is twice of what it would be with just one lookup (0.0078 instead of 0.0039). A regular Bloom filter with the same guarantees would be ~760 MB. For each lookup, one filter segment (so, less than 1 MB) are read from the file.
