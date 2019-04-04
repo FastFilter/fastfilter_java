@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.function.Function;
 
 /**
@@ -81,11 +81,12 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
     int randomAlgorithm;
     boolean warning;
     String[] dataLine;
-    static String[] algorithmNames = new String[100];
+    static String[] algorithmNames = new String[200];
     ArrayList<Data> allData = new ArrayList<>();
     ArrayList<Data> data = new ArrayList<>();
 
     public static void main(String... args) throws IOException {
+        Locale.setDefault(Locale.ENGLISH);
         new AnalyzeResults().processFile();
     }
 
@@ -102,6 +103,7 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
                     || line.startsWith("Using")) {
                 continue;
             }
+            line = line.replaceAll(" \\(addall\\)", "_addAll");
             String[] list = line.split(" +");
             if (Character.isDigit(line.charAt(0)) && line.indexOf(" size ") >= 0) {
                 processEntry();
@@ -158,6 +160,21 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
         System.out.println("\\end{tabular}");
         System.out.println("\\end{table}");
 
+        System.out.println("=== minimum =====");
+        System.out.println("\\begin{table}[]");
+        System.out.println("\\small");
+        System.out.println("\\begin{tabular}{lrrrr}");
+        System.out.println("\\hline");
+        System.out.println("Name & Lookup (25\\% find) & Bits/key & FPP & Million keys \\\\");
+        System.out.println("\\hline");
+        combineData(10);
+        listMinimum();
+        combineData(100);
+        listMinimum();
+        System.out.println("\\hline");
+        System.out.println("\\end{tabular}");
+        System.out.println("\\end{table}");
+
         // printQueryTimeVersusSpaceUsage();
 //        printQueryTimeVersusFPP();
 //        printFppVersusSpaceOverhead();
@@ -171,7 +188,7 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
     static class Data {
         int algorithmId;
         int randomAlgorithm;
-        double add, find0, find25, find50, find75, find100;
+        double add, remove, find0, find25, find50, find75, find100;
         double e, bitsItem, optBitsItem, wastedSpace, keysMillions;
         boolean failed;
 
@@ -297,17 +314,18 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
                 return;
             }
             data.add = Double.parseDouble(dataLine[1]);
-            data.find0 = Double.parseDouble(dataLine[2]);
-            data.find25 = Double.parseDouble(dataLine[3]);
-            data.find50 = Double.parseDouble(dataLine[4]);
-            data.find75 = Double.parseDouble(dataLine[5]);
-            data.find100 = Double.parseDouble(dataLine[6]);
-            data.e = Double.parseDouble(dataLine[7].substring(0, dataLine[7].length() - 1));
-            data.bitsItem = Double.parseDouble(dataLine[8]);
-            data.optBitsItem = Double.parseDouble(dataLine[9]);
-            data.wastedSpace = Double.parseDouble(dataLine[10].substring(0, dataLine[10].length() - 1));
+            data.remove = Double.parseDouble(dataLine[2]);
+            data.find0 = Double.parseDouble(dataLine[3]);
+            data.find25 = Double.parseDouble(dataLine[4]);
+            data.find50 = Double.parseDouble(dataLine[5]);
+            data.find75 = Double.parseDouble(dataLine[6]);
+            data.find100 = Double.parseDouble(dataLine[7]);
+            data.e = Double.parseDouble(dataLine[8].substring(0, dataLine[8].length() - 1));
+            data.bitsItem = Double.parseDouble(dataLine[9]);
+            data.optBitsItem = Double.parseDouble(dataLine[10]);
+            data.wastedSpace = Double.parseDouble(dataLine[11].substring(0, dataLine[11].length() - 1));
             data.failed = warning;
-            double keys = Double.parseDouble(dataLine[11]);
+            double keys = Double.parseDouble(dataLine[12]);
             if (keys != data.keysMillions) {
                 throw new AssertionError();
             }
@@ -494,6 +512,22 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
                     " & " + String.format("%.1f", d.bitsItem) +
                     " & " + String.format("%.3f", d.e) +
                     " & " + String.format("%.1f", d.wastedSpace) +
+                    " & " + Math.round(d.keysMillions) +
+                    " \\\\");
+        }
+    }
+
+    void listMinimum() {
+        sortByName(data);
+        for(Data d : data) {
+            String name = algorithmNames[d.algorithmId];
+            if (name.endsWith("-addAll")) {
+                continue;
+            }
+            System.out.println(name +
+                    " & " + Math.round(nanosPerKey(d.find25)) +
+                    " & " + String.format("%.1f", d.bitsItem) +
+                    " & " + String.format("%.3f", d.e) +
                     " & " + Math.round(d.keysMillions) +
                     " \\\\");
         }
