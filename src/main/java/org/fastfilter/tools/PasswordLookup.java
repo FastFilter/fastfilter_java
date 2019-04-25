@@ -45,9 +45,14 @@ public class PasswordLookup {
     }
 
     private static void testPassword(String filterFile, long[] segmentStarts, String password) throws Exception {
-        // it's unclear which character set was used; ASCII gave good results, as
-        // umlauts are converted to '?'
-        byte[] passwordBytes = password.getBytes(Charset.forName("ASCII"));
+        Result utf8 = testPassword(filterFile, segmentStarts, password, "UTF-8");
+        Result ascii = testPassword(filterFile, segmentStarts, password, "ASCII");
+        Result max = utf8.compareTo(ascii) >= 0 ? utf8 : ascii;
+        System.out.println(max);
+    }
+
+    private static Result testPassword(String filterFile, long[] segmentStarts, String password, String charset) throws Exception {
+        byte[] passwordBytes = password.getBytes(Charset.forName(charset));
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         byte[] sha1 = md.digest(passwordBytes);
         long hash = 0;
@@ -61,11 +66,24 @@ public class PasswordLookup {
         XorPlus8 filter = new XorPlus8(in);
         in.close();
         if (filter.mayContain(key)) {
-            System.out.println("Found");
+            return Result.FOUND;
         } else if (filter.mayContain(key | 1)) {
-            System.out.println("Found; common");
+            return Result.FOUND_COMMON;
         } else {
-            System.out.println("Not found");
+            return Result.NOT_FOUND;
+        }
+    }
+
+    static enum Result {
+        NOT_FOUND("Not found"),
+        FOUND("Found"),
+        FOUND_COMMON("Found; common");
+        private final String message;
+        Result(String message) {
+            this.message = message;
+        }
+        public String toString() {
+            return message;
         }
     }
 
