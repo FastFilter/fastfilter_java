@@ -1,6 +1,8 @@
 package org.fastfilter.analysis;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
@@ -66,6 +68,7 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
                 "Bloom12", "Bloom12", "Bloom 12",
                 "Bloom16", "Bloom16", "Bloom 16",
                 "BlockedBloom", "BlockedBloom", "BlockedBloom",
+                "BlockedBloom-addAll", "BlockedBloom addAll", "BlockedBloom addAll",
                 "GCS", "GCS", "Golomb compressed set",
                 "Xor+8", "Xor+8", "Xor+ 8",
                 "Xor+16", "Xor+16", "Xor+ 16",
@@ -87,11 +90,18 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
 
     public static void main(String... args) throws IOException {
         Locale.setDefault(Locale.ENGLISH);
-        new AnalyzeResults().processFile();
+        String resultFileName = homeDir + "/temp/benchmark-results.txt";
+        if (args.length > 0) {
+            resultFileName = args[0];
+        }
+        if (new File(resultFileName).exists()) {
+            throw new FileNotFoundException(resultFileName);
+        }
+        new AnalyzeResults().processFile(resultFileName);
     }
 
-    private void processFile() throws IOException {
-        LineNumberReader r = new LineNumberReader(new BufferedReader(new FileReader(homeDir + "/temp/results.txt")));
+    private void processFile(String resultFileName) throws IOException {
+        LineNumberReader r = new LineNumberReader(new BufferedReader(new FileReader(resultFileName)));
         while (true) {
             String line = r.readLine();
             if (line == null) {
