@@ -94,7 +94,7 @@ scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
         if (args.length > 0) {
             resultFileName = args[0];
         }
-        if (new File(resultFileName).exists()) {
+        if (!new File(resultFileName).exists()) {
             throw new FileNotFoundException(resultFileName);
         }
         new AnalyzeResults().processFile(resultFileName);
