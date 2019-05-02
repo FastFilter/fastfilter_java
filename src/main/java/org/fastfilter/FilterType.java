@@ -1,9 +1,10 @@
 package org.fastfilter;
 
 import org.fastfilter.bloom.BlockedBloom;
-import org.fastfilter.bloom.SuccinctCountingBlockedBloom;
+import org.fastfilter.bloom.BlockedBloomV2;
 import org.fastfilter.bloom.Bloom;
 import org.fastfilter.bloom.CountingBloom;
+import org.fastfilter.bloom.SuccinctCountingBlockedBloom;
 import org.fastfilter.bloom.SuccinctCountingBloom;
 import org.fastfilter.cuckoo.Cuckoo16;
 import org.fastfilter.cuckoo.Cuckoo8;
@@ -44,6 +45,12 @@ public enum FilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return BlockedBloom.construct(keys, setting);
+        }
+    },
+    BLOCKED_BLOOM_V2 {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return BlockedBloomV2.construct(keys, setting);
         }
     },
     SUCCINCT_COUNTING_BLOCKED_BLOOM {
