@@ -1,38 +1,29 @@
 package org.fastfilter.bloom;
 
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
-
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
 /**
  * A succinct counting blocked Bloom filter. The lookup speed is the same as for
  * a blocked Bloom filter, but it support remove operations. Remove and add
- * operations are slower than for a regular blocked Bloom filter.
+ * operations are slower than for a regular blocked Bloom filter, but if needed
+ * they can be performed asynchronously.
  *
- * The counter is up to 8 bits per entry, unlike the regular counting Bloom
- * where 4 bits are sufficient. For most entries, the counters for 64 entries
- * are shared in a 64-bit long.
+ * Unlike the regular counting Bloom that typically uses 4 bits per entry, for
+ * most entries, the counters for 64 entries are shared in a 64-bit long. In
+ * case of overflow, the counter is 8 bits per entry. This is only needed if the
+ * filter (locally) has a high load.
  */
-public class SuccinctCountingBlockedBloom implements Filter {
-
-    // Cache line aligned
+public class SuccinctCountingBlockedBloomV2 implements Filter {
 
     // whether to verify the counts
     // this is only needed during debugging
     private static final boolean VERIFY_COUNTS = false;
 
-    // Should match the size of a cache line
-    private static final int BITS_PER_BLOCK = 64 * 8;
-    private static final int LONGS_PER_BLOCK = BITS_PER_BLOCK / 64;
-    private static final int BYTES_PER_BLOCK = BITS_PER_BLOCK / 8;
-    private static final int BLOCK_MASK = BITS_PER_BLOCK - 1;
-
-    public static SuccinctCountingBlockedBloom construct(long[] keys, int bitsPerKey) {
+    public static SuccinctCountingBlockedBloomV2 construct(long[] keys, int bitsPerKey) {
         long n = keys.length;
         int k = getBestK(bitsPerKey);
-        SuccinctCountingBlockedBloom f = new SuccinctCountingBlockedBloom((int) n, bitsPerKey, k);
+        SuccinctCountingBlockedBloomV2 f = new SuccinctCountingBlockedBloomV2((int) n, bitsPerKey, k);
         for(long x : keys) {
             f.add(x);
         }
@@ -46,10 +37,9 @@ public class SuccinctCountingBlockedBloom implements Filter {
         return Math.max(1, (int) Math.round(bitsPerKey * Math.log(2)));
     }
 
-    private final int k;
-    private final int blocks;
+    private final int buckets;
     private final long seed;
-    private final LongBuffer data;
+    private final long[] data;
 
     // the counter bits
     // the same size as the "data bits" currently
@@ -62,29 +52,23 @@ public class SuccinctCountingBlockedBloom implements Filter {
     // each byte contains the count for a "data bit"
     private final byte[] realCounts;
 
-
     public long getBitCount() {
-        return 64L * data.capacity() + 64L * counts.length + 64L * overflow.length;
+        return 64L * data.length + 64L * counts.length + 64L * overflow.length;
     }
 
-    SuccinctCountingBlockedBloom(int entryCount, int bitsPerKey, int k) {
+    SuccinctCountingBlockedBloomV2(int entryCount, int bitsPerKey, int k) {
         entryCount = Math.max(1, entryCount);
-        this.k = k;
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;
-        this.blocks = (int) (bits + BITS_PER_BLOCK - 1) / BITS_PER_BLOCK;
-        // ByteBuffer.allocateDirect allocation are cache line aligned
-        // (regular arrays are aligned to 8 bytes; finding the offset is tricky, and GC could move arrays)
-        data = ByteBuffer.allocateDirect((int) (blocks * BYTES_PER_BLOCK)).asLongBuffer();
-        // data = ByteBuffer.allocate((int) (blocks * BYTES_PER_BLOCK) + 8);
-
-        int arraySize = (blocks * BYTES_PER_BLOCK) / 8;
-        counts = new long[arraySize];
-        overflow = new long[100 + arraySize / 100 * 24];
+        this.buckets = (int) bits / 64;
+        int arrayLength = (int) (buckets + 16);
+        data = new long[arrayLength];
+        counts = new long[arrayLength];
+        overflow = new long[100 + arrayLength * 10 / 100];
         for (int i = 0; i < overflow.length; i += 8) {
             overflow[i] = i + 8;
         }
-        realCounts = VERIFY_COUNTS ? new byte[arraySize * 64] : null;
+        realCounts = VERIFY_COUNTS ? new byte[arrayLength * 64] : null;
     }
 
     @Override
@@ -95,22 +79,20 @@ public class SuccinctCountingBlockedBloom implements Filter {
     @Override
     public void add(long key) {
         long hash = Hash.hash64(key, seed);
-        int start = Hash.reduce((int) hash, blocks) * LONGS_PER_BLOCK;
-        int a = (int) hash;
-        int b = (int) (hash >>> 32);
-        for (int i = 0; i < k; i++) {
-            // ByteBuffer:
-            // int index = start + ((a & BLOCK_MASK) >>> 3);
-            // byte x = (byte) (data.get(index) | (1 << (a & 7)));
-            // data.put(index, x);
-            int index = start + ((a & BLOCK_MASK) >>> 6);
-            if (VERIFY_COUNTS) {
-                realCounts[(index << 6) + (a & 63)]++;
-            }
-            increment(index, a);
-            // long x = data.get(index) | (1L << a);
-            // data.put(index, x);
-            a += b;
+        int start = Hash.reduce((int) hash, buckets);
+        hash = hash ^ Long.rotateLeft(hash, 32);
+        int a1 = (int) (hash & 63);
+        int a2 = (int) ((hash >> 6) & 63);
+        increment(start, a1);
+        if (a2 != a1) {
+            increment(start, a2);
+        }
+        int second = start + 1 + (int) (hash >>> 60);
+        int a3 = (int) ((hash >> 12) & 63);
+        int a4 = (int) ((hash >> 18) & 63);
+        increment(second, a3);
+        if (a4 != a3) {
+            increment(second, a4);
         }
     }
 
@@ -122,16 +104,20 @@ public class SuccinctCountingBlockedBloom implements Filter {
     @Override
     public void remove(long key) {
         long hash = Hash.hash64(key, seed);
-        int start = Hash.reduce((int) hash, blocks) * LONGS_PER_BLOCK;
-        int a = (int) hash;
-        int b = (int) (hash >>> 32);
-        for (int i = 0; i < k; i++) {
-            int index = start + ((a & BLOCK_MASK) >>> 6);
-            if (VERIFY_COUNTS) {
-                realCounts[(index << 6) + (a & 63)]--;
-            }
-            decrement(index, a);
-            a += b;
+        int start = Hash.reduce((int) hash, buckets);
+        hash = hash ^ Long.rotateLeft(hash, 32);
+        int a1 = (int) (hash & 63);
+        int a2 = (int) ((hash >> 6) & 63);
+        decrement(start, a1);
+        if (a2 != a1) {
+            decrement(start, a2);
+        }
+        int second = start + 1 + (int) (hash >>> 60);
+        int a3 = (int) ((hash >> 12) & 63);
+        int a4 = (int) ((hash >> 18) & 63);
+        decrement(second, a3);
+        if (a4 != a3) {
+            decrement(second, a4);
         }
     }
 
@@ -141,8 +127,8 @@ public class SuccinctCountingBlockedBloom implements Filter {
             verifyCounts(0, realCounts.length);
         }
         long sum = 0;
-        for (int i = 0; i < data.capacity(); i++) {
-            sum += Long.bitCount(data.get(i));
+        for(long x : data) {
+            sum += Long.bitCount(x);
         }
         for(long x : counts) {
             sum += Long.bitCount(x);
@@ -153,24 +139,20 @@ public class SuccinctCountingBlockedBloom implements Filter {
     @Override
     public boolean mayContain(long key) {
         long hash = Hash.hash64(key, seed);
-        int start = Hash.reduce((int) hash, blocks) * LONGS_PER_BLOCK;
-        int a = (int) hash;
-        int b = (int) (hash >>> 32);
-        for (int i = 0; i < k; i++) {
-            // ByteBuffer:
-            // int index = start + ((a & BLOCK_MASK) >>> 3);
-            // if (((data.get(index) >>> (a & 7)) & 1) == 0) {
-            int index = start + ((a & BLOCK_MASK) >>> 6);
-            if (((data.get(index) >>> a) & 1) == 0) {
-                return false;
-            }
-            a += b;
-        }
-        return true;
+        int start = Hash.reduce((int) hash, buckets);
+        hash = hash ^ Long.rotateLeft(hash, 32);
+        long a = data[start];
+        long b = data[start + 1 + (int) (hash >>> 60)];
+        long m1 = (1L << hash) | (1L << (hash >> 6));
+        long m2 = (1L << (hash >> 12)) | (1L << (hash >> 18));
+        return ((m1 & a) == m1) && ((m2 & b) == m2);
     }
 
     private void increment(int group, int x) {
-        long m = data.get(group);
+        if (VERIFY_COUNTS) {
+            realCounts[(group << 6) + (x & 63)]++;
+        }
+        long m = data[group];
         long d = (m >>> x) & 1;
         long c = counts[group];
         if ((c & 0xc000000000000000L) != 0) {
@@ -194,10 +176,10 @@ public class SuccinctCountingBlockedBloom implements Filter {
             counts[group] = c;
             int bitIndex = x & 63;
             overflow[index + bitIndex / 8] += getBit(bitIndex);
-            data.put(group, data.get(group) | (1L << x));
+            data[group] |= (1L << x);
             return;
         }
-        data.put(group, data.get(group) | (1L << x));
+        data[group] |= 1L << x;
         int bitsBefore = Long.bitCount(m & (-1L >>> (63 - x)));
         int before = Select.selectInLong((c << 1) | 1, bitsBefore);
         int insertAt = before - (int) d;
@@ -218,7 +200,10 @@ public class SuccinctCountingBlockedBloom implements Filter {
     }
 
     private void decrement(int group, int x) {
-        long m = data.get(group);
+        if (VERIFY_COUNTS) {
+            realCounts[(group << 6) + (x & 63)]--;
+        }
+        long m = data[group];
         long c = counts[group];
         if ((c & 0x8000000000000000L) != 0) {
             // an overflow entry
@@ -231,7 +216,7 @@ public class SuccinctCountingBlockedBloom implements Filter {
             overflow[index + bitIndex / 8] = n - getBit(bitIndex);
             n >>>= 8 * (bitIndex & 7);
             if ((n & 0xff) == 1) {
-                data.put(group, data.get(group) & ~(1L << x));
+                data[group] &= ~(1L << x);
             }
             if (count < 64) {
                 // convert back to an inline entry, and free up the overflow entry
@@ -257,7 +242,7 @@ public class SuccinctCountingBlockedBloom implements Filter {
         counts[group] = left | right;
         long removed = (c >> removeAt) & 1;
         // possibly reset the data bit
-        data.put(group, m & ~(removed << x));
+        data[group] = m & ~(removed << x);
     }
 
     private void freeOverflow(int index) {
@@ -282,7 +267,7 @@ public class SuccinctCountingBlockedBloom implements Filter {
 
     private int readCount(int x) {
         int group = x >>> 6;
-        long m = data.get(group);
+        long m = data[group];
         long d = (m >>> x) & 1;
         if (d == 0) {
             return 0;
