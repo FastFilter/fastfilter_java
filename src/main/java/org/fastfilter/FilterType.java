@@ -5,6 +5,7 @@ import org.fastfilter.bloom.BlockedBloomV2;
 import org.fastfilter.bloom.Bloom;
 import org.fastfilter.bloom.CountingBloom;
 import org.fastfilter.bloom.SuccinctCountingBlockedBloom;
+import org.fastfilter.bloom.SuccinctCountingBlockedBloomV2;
 import org.fastfilter.bloom.SuccinctCountingBloom;
 import org.fastfilter.cuckoo.Cuckoo16;
 import org.fastfilter.cuckoo.Cuckoo8;
@@ -57,6 +58,12 @@ public enum FilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return SuccinctCountingBlockedBloom.construct(keys, setting);
+        }
+    },
+    SUCCINCT_COUNTING_BLOCKED_BLOOM_V2 {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return SuccinctCountingBlockedBloomV2.construct(keys, setting);
         }
     },
     XOR_SIMPLE {

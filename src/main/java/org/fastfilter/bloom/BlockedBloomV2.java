@@ -4,10 +4,10 @@ import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
 /**
- * A special kind of blocked Bloom filter. It sets 6 bits in 3 consecutive
- * 64-bit words, and exactly 2 bits per word. It is faster than a regular Bloom
- * filter, but needs slightly more space / has a slightly worse false positive
- * rate.
+ * A special kind of blocked Bloom filter. It sets 2 to 4 (usually 4) bits in
+ * two 64-bit words; 1 or 2 (usually 2) per word. It is faster than a regular
+ * Bloom filter, but needs slightly more space / has a slightly worse false
+ * positive rate.
  */
 public class BlockedBloomV2 implements Filter {
 
@@ -20,7 +20,7 @@ public class BlockedBloomV2 implements Filter {
         return f;
     }
 
-    private final int blocks;
+    private final int buckets;
     private final long seed;
     private final long[] data;
 
@@ -29,11 +29,12 @@ public class BlockedBloomV2 implements Filter {
     }
 
     BlockedBloomV2(int entryCount, int bitsPerKey) {
+        // bitsPerKey = 11;
         entryCount = Math.max(1, entryCount);
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;
-        this.blocks = (int) bits / 64;
-        data = new long[(int) (blocks + 8)];
+        this.buckets = (int) bits / 64;
+        data = new long[(int) (buckets + 16)];
     }
 
     @Override
@@ -44,31 +45,24 @@ public class BlockedBloomV2 implements Filter {
     @Override
     public void add(long key) {
         long hash = Hash.hash64(key, seed);
-        int start = Hash.reduce((int) hash, blocks);
-        int a = (int) hash;
-        int b = (int) (hash >>> 32);
-        for (int i = 0; i < 3; i++) {
-            a += b;
-            data[start] |= (1L << a) | (1L << (a >> 8));
-            start++;
-        }
+        int start = Hash.reduce((int) hash, buckets);
+        hash = hash ^ Long.rotateLeft(hash, 32);
+        long m1 = (1L << hash) | (1L << (hash >> 6));
+        long m2 = (1L << (hash >> 12)) | (1L << (hash >> 18));
+        data[start] |= m1;
+        data[start + 1 + (int) (hash >>> 60)] |= m2;
     }
 
     @Override
     public boolean mayContain(long key) {
         long hash = Hash.hash64(key, seed);
-        int start = Hash.reduce((int) hash, blocks);
-        int a = (int) hash;
-        int b = (int) (hash >>> 32);
-        for (int i = 0; i < 3; i++) {
-            a += b;
-            long x = data[start];
-            if (((x >> a) & (x >> (a >> 8)) & 1) == 0) {
-                return false;
-            }
-            start++;
-        }
-        return true;
+        int start = Hash.reduce((int) hash, buckets);
+        hash = hash ^ Long.rotateLeft(hash, 32);
+        long a = data[start];
+        long b = data[start + 1 + (int) (hash >>> 60)];
+        long m1 = (1L << hash) | (1L << (hash >> 6));
+        long m2 = (1L << (hash >> 12)) | (1L << (hash >> 18));
+        return ((m1 & a) == m1) && ((m2 & b) == m2);
     }
 
 }
