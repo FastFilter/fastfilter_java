@@ -11,8 +11,8 @@ import org.fastfilter.utils.Hash;
  *
  * Unlike the regular counting Bloom that typically uses 4 bits per entry, for
  * most entries, the counters for 64 entries are shared in a 64-bit long. In
- * case of overflow, the counter is 8 bits per entry. This is only needed if the
- * filter (locally) has a high load.
+ * case of overflow, the counter is 8 bits per entry, plus some overhead. This
+ * is only needed if the filter (locally) has a high load.
  */
 public class SuccinctCountingBlockedBloomV2 implements Filter {
 
