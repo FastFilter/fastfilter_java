@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.fastfilter.Filter;
 import org.fastfilter.FilterType;
+import org.fastfilter.utils.Hash;
 import org.fastfilter.utils.RandomGenerator;
 import org.junit.Test;
 
@@ -85,6 +86,19 @@ This could be, for a LSM tree:
 public class TestAllFilters {
 
     public static void main(String... args) {
+        Hash.setSeed(1);
+        for (int size = 1_000_000; size <= 10_000_000; size *= 10) {
+            System.out.println("size " + size);
+            for (int test = 0; test < 1; test++) {
+                test(FilterType.BLOOM, size, test, true);
+                test(FilterType.BLOCKED_BLOOM, size, test, true);
+                test(FilterType.BLOCKED_BLOOM_V2, size, test, true);
+                test(FilterType.SUCCINCT_COUNTING_BLOCKED_BLOOM, size, test, true);
+                test(FilterType.SUCCINCT_COUNTING_BLOCKED_BLOOM_V2, size, test, true);
+                test(FilterType.SUCCINCT_COUNTING_BLOCKED_BLOOM_RANKED_V2, size, test, true);
+            }
+        }
+
         for (int size = 1_000_000; size <= 8_000_000; size *= 2) {
             System.out.println("size " + size);
             testAll(size, true);
@@ -134,6 +148,12 @@ public class TestAllFilters {
                 // throw new AssertionError();
             }
         }
+        if (falseNegatives > 0) {
+            throw new AssertionError("false negatives: " + falseNegatives);
+        }
+        time = System.nanoTime() - time;
+        double nanosPerLookupAllInSet = time / 2 / len;
+        time = System.nanoTime();
         // non keys _may_ be found - this is used to calculate false
         // positives
         int falsePositives = 0;
@@ -143,13 +163,10 @@ public class TestAllFilters {
             }
         }
         time = System.nanoTime() - time;
-        double nanosPerLookup = time / 2 / len;
+        double nanosPerLookupNoneInSet = time / 2 / len;
         double fpp = (double) falsePositives / len;
         long bitCount = f.getBitCount();
         double bitsPerKey = (double) bitCount / len;
-        if (falseNegatives > 0) {
-            throw new AssertionError("false negatives: " + falseNegatives);
-        }
         double nanosPerRemove = -1;
         if (f.supportsRemove()) {
             time = System.nanoTime();
@@ -158,13 +175,18 @@ public class TestAllFilters {
             }
             time = System.nanoTime() - time;
             nanosPerRemove = time / len;
-            assertEquals(0, f.cardinality());
+if (f.cardinality() != 0) {
+    System.out.println(f.cardinality());
+}
+            assertEquals(f.toString(), 0, f.cardinality());
         }
         if (log) {
             System.out.println(type + " fpp: " + fpp +
+                    " size: " + len +
                     " bits/key: " + bitsPerKey +
                     " add ns/key: " + nanosPerAdd +
-                    " lookup ns/key: " + nanosPerLookup +
+                    " lookup 0% ns/key: " + nanosPerLookupNoneInSet +
+                    " lookup 100% ns/key: " + nanosPerLookupAllInSet +
                     (nanosPerRemove < 0 ? "" : (" remove ns/key: " + nanosPerRemove)));
         }
     }
