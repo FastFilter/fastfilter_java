@@ -1,4 +1,4 @@
-package org.fastfilter.bloom;
+package org.fastfilter.bloom.count;
 
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
@@ -14,16 +14,16 @@ import org.fastfilter.utils.Hash;
  * case of overflow, the counter is 8 bits per entry, plus some overhead. This
  * is only needed if the filter (locally) has a high load.
  */
-public class SuccinctCountingBlockedBloomV2 implements Filter {
+public class SuccinctCountingBlockedBloom implements Filter {
 
     // whether to verify the counts
     // this is only needed during debugging
     private static final boolean VERIFY_COUNTS = false;
 
-    public static SuccinctCountingBlockedBloomV2 construct(long[] keys, int bitsPerKey) {
+    public static SuccinctCountingBlockedBloom construct(long[] keys, int bitsPerKey) {
         long n = keys.length;
         int k = getBestK(bitsPerKey);
-        SuccinctCountingBlockedBloomV2 f = new SuccinctCountingBlockedBloomV2((int) n, bitsPerKey, k);
+        SuccinctCountingBlockedBloom f = new SuccinctCountingBlockedBloom((int) n, bitsPerKey, k);
         for(long x : keys) {
             f.add(x);
         }
@@ -56,7 +56,7 @@ public class SuccinctCountingBlockedBloomV2 implements Filter {
         return 64L * data.length + 64L * counts.length + 64L * overflow.length;
     }
 
-    SuccinctCountingBlockedBloomV2(int entryCount, int bitsPerKey, int k) {
+    SuccinctCountingBlockedBloom(int entryCount, int bitsPerKey, int k) {
         entryCount = Math.max(1, entryCount);
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;

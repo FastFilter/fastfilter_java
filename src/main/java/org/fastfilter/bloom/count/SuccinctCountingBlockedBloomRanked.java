@@ -1,4 +1,4 @@
-package org.fastfilter.bloom;
+package org.fastfilter.bloom.count;
 
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
@@ -14,7 +14,7 @@ import org.fastfilter.utils.Hash;
  * case of overflow, the counter is 8 bits per entry, plus some overhead. This
  * is only needed if the filter (locally) has a high load.
  */
-public class SuccinctCountingBlockedBloomRankedV2 implements Filter {
+public class SuccinctCountingBlockedBloomRanked implements Filter {
 
     // whether to verify the counts
     // this is only needed during debugging
@@ -22,10 +22,10 @@ public class SuccinctCountingBlockedBloomRankedV2 implements Filter {
 
     // static boolean debugPrint;
 
-    public static SuccinctCountingBlockedBloomRankedV2 construct(long[] keys, int bitsPerKey) {
+    public static SuccinctCountingBlockedBloomRanked construct(long[] keys, int bitsPerKey) {
         long n = keys.length;
         int k = getBestK(bitsPerKey);
-        SuccinctCountingBlockedBloomRankedV2 f = new SuccinctCountingBlockedBloomRankedV2((int) n, bitsPerKey, k);
+        SuccinctCountingBlockedBloomRanked f = new SuccinctCountingBlockedBloomRanked((int) n, bitsPerKey, k);
         for(long x : keys) {
             f.add(x);
         }
@@ -58,7 +58,7 @@ public class SuccinctCountingBlockedBloomRankedV2 implements Filter {
         return 64L * data.length + 64L * counts.length + 64L * overflow.length;
     }
 
-    SuccinctCountingBlockedBloomRankedV2(int entryCount, int bitsPerKey, int k) {
+    SuccinctCountingBlockedBloomRanked(int entryCount, int bitsPerKey, int k) {
         entryCount = Math.max(1, entryCount);
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;
@@ -155,9 +155,7 @@ public class SuccinctCountingBlockedBloomRankedV2 implements Filter {
             realCounts[(group << 6) + (x & 63)]++;
         }
         long m = data[group];
-        long d = (m >>> x) & 1;
         long c = counts[group];
-
         if ((c & 0x8000000000000000L) != 0) {
             // already an overflow
             int index = (int) (c & 0x0fffffff);
@@ -168,6 +166,7 @@ public class SuccinctCountingBlockedBloomRankedV2 implements Filter {
             data[group] |= (1L << x);
             return;
         }
+        long d = (m >>> x) & 1;
         if (d == 0 && c == 0) {
             data[group] |= 1L << x;
             return;
@@ -262,7 +261,6 @@ public class SuccinctCountingBlockedBloomRankedV2 implements Filter {
 
             return;
         }
-
 
         data[group] |= 1L << x;
         counts[group] = c;
@@ -500,7 +498,7 @@ public class SuccinctCountingBlockedBloomRankedV2 implements Filter {
     // }
 
     static String getBitsNumber(long x) {
-        String s = "0000000000000000000000000000000000000000000000000000000000000000000000" + Long.toBinaryString(x);
+        String s = "0".repeat(64) + Long.toBinaryString(x);
         s = s.substring(s.length() - 64);
         return s;
     }

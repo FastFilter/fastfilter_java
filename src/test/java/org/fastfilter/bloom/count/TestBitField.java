@@ -1,11 +1,11 @@
-package org.fastfilter.bloom;
+package org.fastfilter.bloom.count;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.BitSet;
 import java.util.Random;
 
-import org.fastfilter.bloom.SuccinctCountingBloom.BitField;
+import org.fastfilter.bloom.count.SuccinctCountingBloom.BitField;
 import org.junit.Test;
 
 public class TestBitField {

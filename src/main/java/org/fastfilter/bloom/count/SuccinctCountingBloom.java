@@ -1,4 +1,4 @@
-package org.fastfilter.bloom;
+package org.fastfilter.bloom.count;
 
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
@@ -73,7 +73,7 @@ public class SuccinctCountingBloom implements Filter {
         arraySize = (int) ((bits + 63) / 64);
         data = new BitField(64 * (arraySize + 10));
         counts = new BitField(64 * (arraySize + 10));
-        overflow = new long[100 + arraySize / 100 * 12];
+        overflow = new long[100 + arraySize * 12 / 100];
         for (int i = 0; i < overflow.length; i += 4) {
             overflow[i] = i + 4;
         }
@@ -278,7 +278,7 @@ public class SuccinctCountingBloom implements Filter {
         return true;
     }
 
-    public static class BitField {
+    static class BitField {
 
         private final long[] data;
 
@@ -286,7 +286,7 @@ public class SuccinctCountingBloom implements Filter {
             data = new long[(bitCount + 63) / 64];
         }
 
-        public long cardinality() {
+        long cardinality() {
             long sum = 0;
             for(long x : data) {
                 sum += Long.bitCount(x);
@@ -298,15 +298,15 @@ public class SuccinctCountingBloom implements Filter {
             data[index >>> 6] &= ~(1L << index);
         }
 
-        public void setLong(int longIndex, long x) {
+        void setLong(int longIndex, long x) {
             data[longIndex] = x;
         }
 
-        public long getLong(int longIndex) {
+        long getLong(int longIndex) {
             return data[longIndex];
         }
 
-        public long getBitCount() {
+        long getBitCount() {
             return data.length << 6;
         }
 

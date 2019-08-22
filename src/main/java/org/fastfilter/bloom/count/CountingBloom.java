@@ -1,4 +1,4 @@
-package org.fastfilter.bloom;
+package org.fastfilter.bloom.count;
 
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
