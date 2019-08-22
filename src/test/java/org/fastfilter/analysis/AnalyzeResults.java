@@ -19,34 +19,16 @@ public class AnalyzeResults {
 
 /*
 
-Run benchmarks as follows:
+Run the benchmark as follows:
 
 git clone https://github.com/FastFilter/fastfilter_cpp.git
 
 cd fastfilter_cpp
 cd benchmarks
 make clean; make
-pico test.sh
-chmod a+x test.sh
+nohup ./benchmark.sh &
 
-#!/bin/sh
-for rnd in `seq -1 -1`; do
-  for alg in `seq 0 15`; do
-    for m in `seq 10 90 100`; do
-      for test in `seq 1 3`; do
-        now=$(date +"%T");
-        echo ${now} alg ${alg} size ${m} ${rnd};
-        ./bulk-insert-and-query.exe ${m}000000 ${alg} ${rnd};
-      done;
-    done;
-  done;
-done > results-2018-10-17.txt
-done > results-2018-10-17-skylake-x.txt
-done > results-2018-10-17-softiron1000.txt
-
-nohup ./test.sh &
-
-scp ...:~/fastfilter_cpp/benchmarks/results-2018-10-17-softiron1000.txt .
+scp ...:~/fastfilter_cpp/benchmarks/benchmark-results.txt .
 
  */
 

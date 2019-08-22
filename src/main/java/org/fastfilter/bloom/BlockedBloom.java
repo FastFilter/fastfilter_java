@@ -4,36 +4,23 @@ import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
 /**
- * A blocked Bloom filter. Compared to a regular Bloom filter, it is little bit
- * faster, but needs more space. Not that useful beyond about 20 bits per key,
- * as fpp doesn't decreased further.
+ * A special kind of blocked Bloom filter. It sets 2 to 4 (usually 4) bits in
+ * two 64-bit words; 1 or 2 (usually 2) per word. It is faster than a regular
+ * Bloom filter, but needs slightly more space / has a slightly worse false
+ * positive rate.
  */
 public class BlockedBloom implements Filter {
 
-    // TODO not cache line aligned
-
-    // Should match the size of a cache line
-    private static final int BITS_PER_BLOCK = 64 * 8;
-    private static final int LONGS_PER_BLOCK = BITS_PER_BLOCK / 64;
-    private static final int BLOCK_MASK = BITS_PER_BLOCK - 1;
-
     public static BlockedBloom construct(long[] keys, int bitsPerKey) {
         long n = keys.length;
-        long m = n * bitsPerKey;
-        int k = getBestK(m, n);
-        BlockedBloom f = new BlockedBloom((int) n, bitsPerKey, k);
+        BlockedBloom f = new BlockedBloom((int) n, bitsPerKey);
         for(long x : keys) {
             f.add(x);
         }
         return f;
     }
 
-    private static int getBestK(long m, long n) {
-        return Math.max(1, (int) Math.round((double) m / n * Math.log(2)));
-    }
-
-    private final int k;
-    private final int blocks;
+    private final int buckets;
     private final long seed;
     private final long[] data;
 
@@ -41,13 +28,13 @@ public class BlockedBloom implements Filter {
         return data.length * 64L;
     }
 
-    BlockedBloom(int entryCount, int bitsPerKey, int k) {
+    BlockedBloom(int entryCount, int bitsPerKey) {
+        // bitsPerKey = 11;
         entryCount = Math.max(1, entryCount);
-        this.k = k;
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;
-        this.blocks = (int) (bits + BITS_PER_BLOCK - 1) / BITS_PER_BLOCK;
-        data = new long[(int) (blocks * LONGS_PER_BLOCK) + 8];
+        this.buckets = (int) bits / 64;
+        data = new long[(int) (buckets + 16)];
     }
 
     @Override
@@ -58,32 +45,24 @@ public class BlockedBloom implements Filter {
     @Override
     public void add(long key) {
         long hash = Hash.hash64(key, seed);
-        int start = Hash.reduce((int) hash, blocks) * LONGS_PER_BLOCK;
-        int a = (int) hash;
-        int b = (int) (hash >>> 32);
-        for (int i = 0; i < k; i++) {
-            data[start + ((a & BLOCK_MASK) >>> 6)] |= getBit(a);
-            a += b;
-        }
+        int start = Hash.reduce((int) hash, buckets);
+        hash = hash ^ Long.rotateLeft(hash, 32);
+        long m1 = (1L << hash) | (1L << (hash >> 6));
+        long m2 = (1L << (hash >> 12)) | (1L << (hash >> 18));
+        data[start] |= m1;
+        data[start + 1 + (int) (hash >>> 60)] |= m2;
     }
 
     @Override
     public boolean mayContain(long key) {
         long hash = Hash.hash64(key, seed);
-        int start = Hash.reduce((int) hash, blocks) * LONGS_PER_BLOCK;
-        int a = (int) hash;
-        int b = (int) (hash >>> 32);
-        for (int i = 0; i < k; i++) {
-            if ((data[start + ((a & BLOCK_MASK) >>> 6)] & getBit(a)) == 0) {
-                return false;
-            }
-            a += b;
-        }
-        return true;
-    }
-
-    private static long getBit(int index) {
-        return 1L << index;
+        int start = Hash.reduce((int) hash, buckets);
+        hash = hash ^ Long.rotateLeft(hash, 32);
+        long a = data[start];
+        long b = data[start + 1 + (int) (hash >>> 60)];
+        long m1 = (1L << hash) | (1L << (hash >> 6));
+        long m2 = (1L << (hash >> 12)) | (1L << (hash >> 18));
+        return ((m1 & a) == m1) && ((m2 & b) == m2);
     }
 
 }
