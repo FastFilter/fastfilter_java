@@ -1,15 +1,11 @@
 package org.fastfilter.tools;
 
-import java.io.BufferedInputStream;
-import java.io.Console;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import org.fastfilter.xorplus.XorPlus8;
+
+import java.io.*;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.Scanner;
-
-import org.fastfilter.xorplus.XorPlus8;
 
 public class PasswordLookup {
 

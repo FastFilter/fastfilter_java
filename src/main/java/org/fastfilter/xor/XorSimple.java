@@ -1,9 +1,9 @@
 package org.fastfilter.xor;
 
-import java.util.Random;
-
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
+
+import java.util.Random;
 
 public class XorSimple implements Filter {
 

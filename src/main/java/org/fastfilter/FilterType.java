@@ -2,11 +2,7 @@ package org.fastfilter;
 
 import org.fastfilter.bloom.BlockedBloom;
 import org.fastfilter.bloom.Bloom;
-import org.fastfilter.bloom.count.CountingBloom;
-import org.fastfilter.bloom.count.SuccinctCountingBlockedBloom;
-import org.fastfilter.bloom.count.SuccinctCountingBlockedBloomRanked;
-import org.fastfilter.bloom.count.SuccinctCountingBloom;
-import org.fastfilter.bloom.count.SuccinctCountingBloomRanked;
+import org.fastfilter.bloom.count.*;
 import org.fastfilter.cuckoo.Cuckoo16;
 import org.fastfilter.cuckoo.Cuckoo8;
 import org.fastfilter.cuckoo.CuckooPlus16;

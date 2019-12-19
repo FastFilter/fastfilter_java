@@ -1,14 +1,10 @@
 package org.fastfilter.xorplus;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.BitSet;
-
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
+
+import java.io.*;
+import java.util.BitSet;
 
 /**
  * A slower implementation of the Xor filter, which uses slightly less space
