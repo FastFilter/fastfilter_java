@@ -1,13 +1,9 @@
 package org.fastfilter.xor;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
+
+import java.io.*;
 
 /**
  * The Xor Filter, a new algorithm that can replace a bloom filter.

@@ -1,17 +1,11 @@
 package org.fastfilter.tools;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-
 import org.fastfilter.utils.StringUtils;
 import org.fastfilter.xorplus.XorPlus8;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 public class BuildFilterFile {
 
