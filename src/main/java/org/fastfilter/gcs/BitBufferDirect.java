@@ -120,7 +120,7 @@ public class BitBufferDirect {
     }
 
     public int readUntilZero(int pos) {
-        long current = data.getLong((int) (pos >>> 3));
+        long current = data.getLong((pos >>> 3));
         long x = ~current << ((pos & 7));
         return Long.numberOfLeadingZeros(x);
     }

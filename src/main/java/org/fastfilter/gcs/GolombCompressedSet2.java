@@ -38,7 +38,7 @@ public class GolombCompressedSet2 implements Filter {
         fingerprintBits += 6;
         long[] data = new long[len];
         fingerprintMask = (1 << fingerprintBits) - 1;
-        bucketCount = (int) ((len + averageBucketSize - 1) / averageBucketSize);
+        bucketCount = (len + averageBucketSize - 1) / averageBucketSize;
         for (int i = 0; i < len; i++) {
             long h = Hash.hash64(keys[i], seed);
             long b = Hash.reduce((int) (h >>> 32), bucketCount);

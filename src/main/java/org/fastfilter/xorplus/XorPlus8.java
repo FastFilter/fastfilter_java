@@ -76,7 +76,7 @@ public class XorPlus8 implements Filter {
         return new XorPlus8(keys);
     }
 
-    public XorPlus8(int size, int hashIndex, byte[] fingerprints) {
+    public XorPlus8(int size, byte[] fingerprints) {
         this.size = size;
         this.arrayLength = getArrayLength(size);
         bitCount = arrayLength * BITS_PER_FINGERPRINT;
@@ -100,7 +100,6 @@ public class XorPlus8 implements Filter {
      * we have that, we can insert the data.
      *
      * @param keys the list of entries (keys)
-     * @param bitsPerFingerprint the fingerprint size in bits
      */
     public XorPlus8(long[] keys) {
         this.size = keys.length;
@@ -122,7 +121,7 @@ public class XorPlus8 implements Filter {
         // hashIndex is usually 0; only if we detect a cycle
         // (which is extremely unlikely) we would have to use a larger hashIndex
         long seed = 0;
-        while (true) {
+        do {
             seed = Hash.randomSeed();
             // we use an second table t2 to keep the list of all keys that map
             // to a given entry (with a broken hash function, all keys could map
@@ -134,7 +133,7 @@ public class XorPlus8 implements Filter {
             // again, and once only one is remaining, we know which one it was
             long[] t2 = new long[m];
             // now we loop over all keys and insert them into the t2 table
-            for(long k : keys) {
+            for (long k : keys) {
                 for (int hi = 0; hi < HASHES; hi++) {
                     int h = getHash(k, seed, hi);
                     t2[h] ^= k;
@@ -160,7 +159,7 @@ public class XorPlus8 implements Filter {
             // if this resulted in yet another entry that is alone -
             // the BDZ algorithm loops over _all_ entries in the beginning,
             // but this results in adding more entries to the alone list multiple times
-            for(int nextAlone = 0; nextAlone < HASHES; nextAlone++) {
+            for (int nextAlone = 0; nextAlone < HASHES; nextAlone++) {
                 for (int i = 0; i < blockLength; i++) {
                     if (t2count[nextAlone * blockLength + i] == 1) {
                         alone[nextAlone][alonePos[nextAlone]++] = nextAlone * blockLength + i;
@@ -207,10 +206,7 @@ public class XorPlus8 implements Filter {
                 reverseOrderPos++;
             }
             // this means there was no cycle
-            if (reverseOrderPos == size) {
-                break;
-            }
-        }
+        } while (reverseOrderPos != size);
         this.seed = seed;
         // == assignment step ==
         // fingerprints (array, then converted to a bit buffer)
@@ -256,8 +252,8 @@ public class XorPlus8 implements Filter {
         rank = new Rank9(set, blockLength);
 
         fingerprints = new byte[2 * blockLength + set.cardinality()];
-        for (int i = 0; i < 2 * blockLength; i++) {
-            fingerprints[i] = (byte) fp[i];
+        if (2 * blockLength >= 0) {
+            System.arraycopy(fp, 0, fingerprints, 0, 2 * blockLength);
         }
         for (int i = 2 * blockLength, j = i; i < fp.length;) {
             int f = fp[i++];
@@ -323,10 +319,10 @@ public class XorPlus8 implements Filter {
         // r = reduce((int) r, arrayLength);
 
         // use one distinct block of entries for each hash index
-        r = Hash.reduce((int) r, blockLength);
+        r = Hash.reduce(r, blockLength);
         r = r + index * blockLength;
 
-        return (int) r;
+        return r;
     }
 
 

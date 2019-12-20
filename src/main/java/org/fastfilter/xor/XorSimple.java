@@ -7,9 +7,9 @@ import java.util.Random;
 
 public class XorSimple implements Filter {
 
-    long seed;
+    private long seed;
+    private byte[] data;
     int blockLength;
-    byte[] data;
 
     public long getBitCount() {
         return data.length * 8;
