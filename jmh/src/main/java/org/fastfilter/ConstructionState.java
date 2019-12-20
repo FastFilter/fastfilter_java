@@ -3,7 +3,7 @@ package org.fastfilter;
 import org.openjdk.jmh.annotations.*;
 
 @State(Scope.Benchmark)
-public class FilterConstructionState {
+public class ConstructionState {
 
     @Param({"1048576", "2097152"})
     int size;
