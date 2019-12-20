@@ -6,69 +6,32 @@
 
     <groupId>org.fastfilter</groupId>
     <artifactId>fastfilter_java</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>fastfilter</module>
+        <module>jmh</module>
+    </modules>
 
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>4.12</junit.version>
+        <jmh.version>1.22</jmh.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.surefire.version>2.19.1</maven.surefire.version>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-        </dependency>
-    </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
-                <configuration>
-                    <fork>true</fork>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                    <showDeprecation>true</showDeprecation>
-                    <failOnError>true</failOnError>
-                    <showWarnings>true</showWarnings>
-                    <showDeprecation>true</showDeprecation>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven.surefire.version}</version>
-                <configuration>
-                    <includes>*</includes>
-                    <skipTests>false</skipTests>
-                    <forkCount>1</forkCount>
-                    <reuseForks>false</reuseForks>
-                </configuration>
-            </plugin>
-			<plugin>
-				<!-- mvn org.pitest:pitest-maven:mutationCoverage -->
-    			<groupId>org.pitest</groupId>
-    			<artifactId>pitest-maven</artifactId>
-    			<version>1.4.3</version>
-				<configuration>
-        			<targetClasses>
-            			<param>org.fastfilter.gcs.Sort</param>
-       				</targetClasses>
-        			<targetTests>
-            			<param>org.fastfilter.gcs.SortTest</param>
-        			</targetTests>
-    			</configuration>    			
-			</plugin>            
-        </plugins>
-    </build>
 </project>
