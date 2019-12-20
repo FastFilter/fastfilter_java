@@ -2,20 +2,11 @@ package org.fastfilter;
 
 import org.openjdk.jmh.annotations.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @State(Scope.Benchmark)
-public class FilterQueryState extends FilterConstructionState {
-
-    @AuxCounters
-    static class Counters {
-        private final long bitCount;
-        int workDone;
-        int found;
-        int notFound;
-
-        Counters(Filter filter) {
-            this.bitCount = filter.getBitCount();
-        }
-    }
+public class MembershipState extends ConstructionState {
 
     @Param({"10", "15", "20", "25"})
     int logDistinctLookups;
@@ -24,16 +15,7 @@ public class FilterQueryState extends FilterConstructionState {
     float trueMatchProbability;
 
     private long[] keysToFind;
-    private Counters counters;
-
-    public void found() {
-        ++counters.found;
-    }
-
-    public void notFound() {
-        ++counters.notFound;
-    }
-
+    int workDone;
     Filter filter;
 
     public Filter getFilter() {
@@ -41,7 +23,7 @@ public class FilterQueryState extends FilterConstructionState {
     }
 
     public long nextKey() {
-        return keysToFind[(counters.workDone++) & (keysToFind.length - 1)];
+        return keysToFind[(workDone++) & (keysToFind.length - 1)];
     }
 
     @Override
@@ -56,5 +38,20 @@ public class FilterQueryState extends FilterConstructionState {
                     + memberCount + " keys  but have " + keys.length);
         }
         System.arraycopy(keys, 0, keysToFind, 0, memberCount);
+        Set<Long> present = new HashSet<>();
+        for (long key : keys) {
+            present.add(key);
+        }
+        for (int i = memberCount; i < keysToFind.length; ++i) {
+            do {
+                long key = kgs.nextKey();
+                if (!present.contains(key)) {
+                    present.add(key);
+                    keysToFind[i] = key;
+                    break;
+                }
+            } while (true);
+        }
+
     }
 }
