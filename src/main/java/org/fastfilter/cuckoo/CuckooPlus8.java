@@ -85,11 +85,11 @@ public class CuckooPlus8 implements Filter {
         index++;
         x |= SHIFTED;
         fp = get(index);
-        // already inserted
         if (fp == 0) {
             set(index, x);
             return true;
         } else {
+            // already inserted?
             return fp == x;
         }
     }
