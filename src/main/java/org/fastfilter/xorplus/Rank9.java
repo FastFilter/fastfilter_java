@@ -34,10 +34,6 @@ public class Rank9 {
     private final long[] bits;
     private final long[] counts;
 
-    long mostSignificantBit(long x) {
-        return 63 - Long.numberOfLeadingZeros(x);
-    }
-
     public Rank9(BitSet set, long bitCount) {
         long[] bits = set.toLongArray();
         // One zero entry is needed at the end
@@ -119,12 +115,12 @@ public class Rank9 {
 
     public void write(DataOutputStream d) throws IOException {
         d.writeInt(bits.length);
-        for (int i = 0; i < bits.length; i++) {
-            d.writeLong(bits[i]);
+        for (long bit : bits) {
+            d.writeLong(bit);
         }
         d.writeInt(counts.length);
-        for (int i = 0; i < counts.length; i++) {
-            d.writeLong(counts[i]);
+        for (long count : counts) {
+            d.writeLong(count);
         }
     }
 

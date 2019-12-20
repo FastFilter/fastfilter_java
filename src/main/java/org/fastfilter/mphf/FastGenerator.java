@@ -37,7 +37,6 @@ public class FastGenerator {
         if (len <= 1) {
             return buff;
         }
-        fingerprints = new BitBuffer(len * fingerprintBits);
         int bucketCount = Builder.getBucketCount(len, averageBucketSize);
         bucketBuff = new BitBuffer(len * 10 / bucketCount);
         int bucketBitCount = 31 - Integer.numberOfLeadingZeros(bucketCount);
@@ -81,25 +80,23 @@ public class FastGenerator {
         }
         boolean monotone = true;
         int last = 0;
-        int[] pos = offsetList;
         for (int i = 0; i < len; i++) {
             long x = keys[i];
             int b = (int) (x >>> shift);
-            pos[b]++;
+            offsetList[b]++;
             if (b < last) {
                 monotone = false;
             }
             last = b;
         }
-        int[] stop = array2;
         int sum = 0;
         int maxCount = 0;
         for (int i = 0; i < bucketCount; i++) {
-            int count = pos[i];
+            int count = offsetList[i];
             maxCount = Math.max(maxCount, count);
-            pos[i] = sum;
+            offsetList[i] = sum;
             sum += count;
-            stop[i] = sum;
+            array2[i] = sum;
         }
         if (maxCount > MAX_BUCKET_SIZE) {
             throw new IllegalArgumentException("max=" + maxCount);
@@ -112,14 +109,14 @@ public class FastGenerator {
         long x = keys[i];
         for(int bucket = 0;;) {
             int targetBucket = (int) (x >>> shift);
-            int index = pos[targetBucket]++;
+            int index = offsetList[targetBucket]++;
             long next = keys[index];
             keys[index] = x;
             x = next;
             if (index == i) {
                 while (true) {
-                    index = pos[bucket];
-                    if (index < stop[bucket]) {
+                    index = offsetList[bucket];
+                    if (index < array2[bucket]) {
                         break;
                     }
                     bucket++;

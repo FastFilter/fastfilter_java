@@ -48,11 +48,11 @@ public class Xor8 implements Filter {
         byte[] reverseH = new byte[size];
         int reverseOrderPos;
         long seed;
-        while (true) {
+        do {
             seed = Hash.randomSeed();
             byte[] t2count = new byte[m];
             long[] t2 = new long[m];
-            for(long k : keys) {
+            for (long k : keys) {
                 for (int hi = 0; hi < HASHES; hi++) {
                     int h = getHash(k, seed, hi);
                     t2[h] ^= k;
@@ -66,7 +66,7 @@ public class Xor8 implements Filter {
             reverseOrderPos = 0;
             int[][] alone = new int[HASHES][blockLength];
             int[] alonePos = new int[HASHES];
-            for(int nextAlone = 0; nextAlone < HASHES; nextAlone++) {
+            for (int nextAlone = 0; nextAlone < HASHES; nextAlone++) {
                 for (int i = 0; i < blockLength; i++) {
                     if (t2count[nextAlone * blockLength + i] == 1) {
                         alone[nextAlone][alonePos[nextAlone]++] = nextAlone * blockLength + i;
@@ -109,10 +109,7 @@ public class Xor8 implements Filter {
                 reverseH[reverseOrderPos] = (byte) found;
                 reverseOrderPos++;
             }
-            if (reverseOrderPos == size) {
-                break;
-            }
-        }
+        } while (reverseOrderPos != size);
         this.seed = seed;
         byte[] fp = new byte[m];
         for (int i = reverseOrderPos - 1; i >= 0; i--) {
@@ -132,9 +129,7 @@ public class Xor8 implements Filter {
             fp[change] = (byte) xor;
         }
         fingerprints = new byte[m];
-        for(int i=0; i<fp.length; i++) {
-            fingerprints[i] = (byte) fp[i];
-        }
+        System.arraycopy(fp, 0, fingerprints, 0, fp.length);
     }
 
     @Override

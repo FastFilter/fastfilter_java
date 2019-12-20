@@ -70,7 +70,7 @@ public class PasswordLookup {
         }
     }
 
-    static enum Result {
+    enum Result {
         NOT_FOUND("Not found"),
         FOUND("Found"),
         FOUND_COMMON("Found; common");

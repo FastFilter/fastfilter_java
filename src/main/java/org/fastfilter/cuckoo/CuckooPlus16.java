@@ -85,14 +85,13 @@ public class CuckooPlus16 implements Filter {
         index++;
         x |= SHIFTED;
         fp = get(index);
+        // already inserted
         if (fp == 0) {
             set(index, x);
             return true;
-        } else if (fp == x) {
-            // already inserted
-            return true;
+        } else {
+            return fp == x;
         }
-        return false;
     }
 
     private void swap(int index, long x) {
@@ -159,10 +158,7 @@ public class CuckooPlus16 implements Filter {
         if (get(bucket2) == x) {
             return true;
         }
-        if (get(bucket2 + 1) == (x | SHIFTED)) {
-            return true;
-        }
-        return false;
+        return get(bucket2 + 1) == (x | SHIFTED);
     }
 
     private int getBucket(long hash) {

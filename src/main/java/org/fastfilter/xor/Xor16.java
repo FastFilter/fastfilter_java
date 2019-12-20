@@ -17,8 +17,6 @@ public class Xor16 implements Filter {
     private static final int BITS_PER_FINGERPRINT = 16;
     private static final int HASHES = 3;
     private static final int FACTOR_TIMES_100 = 123;
-    private final int size;
-    private final int arrayLength;
     private final int blockLength;
     private long seed;
     private short[] fingerprints;
@@ -37,20 +35,19 @@ public class Xor16 implements Filter {
     }
 
     public Xor16(long[] keys) {
-        this.size = keys.length;
-        arrayLength = getArrayLength(size);
+        int size = keys.length;
+        int arrayLength = getArrayLength(size);
         bitCount = arrayLength * BITS_PER_FINGERPRINT;
         blockLength = arrayLength / HASHES;
-        int m = arrayLength;
         long[] reverseOrder = new long[size];
         byte[] reverseH = new byte[size];
         int reverseOrderPos;
         long seed;
-        while (true) {
+        do {
             seed = Hash.randomSeed();
-            byte[] t2count = new byte[m];
-            long[] t2 = new long[m];
-            for(long k : keys) {
+            byte[] t2count = new byte[arrayLength];
+            long[] t2 = new long[arrayLength];
+            for (long k : keys) {
                 for (int hi = 0; hi < HASHES; hi++) {
                     int h = getHash(k, seed, hi);
                     t2[h] ^= k;
@@ -63,7 +60,7 @@ public class Xor16 implements Filter {
             int[] alone = new int[arrayLength];
             int alonePos = 0;
             reverseOrderPos = 0;
-            for(int nextAloneCheck = 0; nextAloneCheck < arrayLength;) {
+            for (int nextAloneCheck = 0; nextAloneCheck < arrayLength; ) {
                 while (nextAloneCheck < arrayLength) {
                     if (t2count[nextAloneCheck] == 1) {
                         alone[alonePos++] = nextAloneCheck;
@@ -95,12 +92,9 @@ public class Xor16 implements Filter {
                     reverseOrderPos++;
                 }
             }
-            if (reverseOrderPos == size) {
-                break;
-            }
-        }
+        } while (reverseOrderPos != size);
         this.seed = seed;
-        short[] fp = new short[m];
+        short[] fp = new short[arrayLength];
         for (int i = reverseOrderPos - 1; i >= 0; i--) {
             long k = reverseOrder[i];
             int found = reverseH[i];
@@ -117,10 +111,8 @@ public class Xor16 implements Filter {
             }
             fp[change] = (short) xor;
         }
-        fingerprints = new short[m];
-        for(int i=0; i<fp.length; i++) {
-            fingerprints[i] = (short) fp[i];
-        }
+        fingerprints = new short[arrayLength];
+        System.arraycopy(fp, 0, fingerprints, 0, fp.length);
     }
 
     @Override
