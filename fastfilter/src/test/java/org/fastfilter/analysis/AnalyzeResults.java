@@ -42,6 +42,9 @@ scp ...:~/fastfilter_cpp/benchmarks/benchmark-results.txt .
                 "Cuckoo8", "Cuckoo8", "Cuckoo 8",
                 "Cuckoo12", "Cuckoo12", "Cuckoo 12",
                 "Cuckoo16", "Cuckoo16", "Cuckoo 16",
+                "Cuckoo12-2^n", "OC12", "Original Cuckoo 12",
+                "Cuckoo16-2^n", "OC16", "Original Cuckoo 16",
+                "CuckooSemiSort13-2^n", "OCss13",  "Original Cuckoo semiSort 13",
                 "Xor8", "Xor8", "Xor 8",
                 "Xor12", "Xor12", "Xor 12",
                 "Xor16", "Xor16", "Xor 16",
@@ -54,6 +57,7 @@ scp ...:~/fastfilter_cpp/benchmarks/benchmark-results.txt .
                 "GCS", "GCS", "Golomb compressed set",
                 "Xor+8", "Xor+8", "Xor+ 8",
                 "Xor+16", "Xor+16", "Xor+ 16",
+                "Morton", "Morton", "Morton 3/8",
                 };
         for (int i = 0; i < map.length; i += 3) {
             namesMap.put(map[i], map[i + 1]);
