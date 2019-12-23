@@ -21,9 +21,9 @@ public class SimpleFuzzer {
                     seed = ThreadLocalRandom.current().nextLong();
                     Hash.setSeed(seed);
                     Filter filter = type.construct(keys, 8);
-                    assertTrue(filter.mayContain(1));
-                    assertTrue(filter.mayContain(2));
-                    assertTrue(filter.mayContain(3));
+                    assertTrue(seed + "/" + type, filter.mayContain(1));
+                    assertTrue(seed + "/" + type, filter.mayContain(2));
+                    assertTrue(seed + "/" + type, filter.mayContain(3));
                 }
             } catch (Exception e) {
                 System.out.println(seed + "/" + type);
