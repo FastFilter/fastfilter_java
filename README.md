@@ -1,4 +1,4 @@
-# Fast Approximate Membership Filters  [![Build Status](https://travis-ci.org/FastFilter/fastfilter_java.svg?branch=master)](https://travis-ci.org/FastFilter/fastfilter_java)
+# Fast Approximate Membership Filters  [![Build Status](https://travis-ci.com/FastFilter/fastfilter_java.svg?branch=master)](https://travis-ci.com/FastFilter/fastfilter_java)
 
 The following filter types are currently implemented:
 
