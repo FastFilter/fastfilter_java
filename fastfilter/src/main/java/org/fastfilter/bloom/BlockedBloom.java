@@ -1,6 +1,6 @@
 package org.fastfilter.bloom;
 
-import org.fastfilter.Filter;
+import org.fastfilter.MutableFilter;
 import org.fastfilter.utils.Hash;
 
 /**
@@ -9,7 +9,7 @@ import org.fastfilter.utils.Hash;
  * Bloom filter, but needs slightly more space / has a slightly worse false
  * positive rate.
  */
-public class BlockedBloom implements Filter {
+public class BlockedBloom implements MutableFilter {
 
     public static BlockedBloom construct(long[] keys, int bitsPerKey) {
         long n = keys.length;
@@ -34,12 +34,7 @@ public class BlockedBloom implements Filter {
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;
         this.buckets = (int) bits / 64;
-        data = new long[(int) (buckets + 16)];
-    }
-
-    @Override
-    public boolean supportsAdd() {
-        return true;
+        data = new long[(buckets + 16)];
     }
 
     @Override

@@ -1,6 +1,6 @@
 package org.fastfilter.bloom.count;
 
-import org.fastfilter.Filter;
+import org.fastfilter.RemovableFilter;
 import org.fastfilter.utils.Hash;
 
 /**
@@ -14,7 +14,7 @@ import org.fastfilter.utils.Hash;
  * usage is about half. However, adding and removing entries is about half as
  * fast.
  */
-public class SuccinctCountingBloom implements Filter {
+public class SuccinctCountingBloom implements RemovableFilter {
 
     // whether to verify the counts
     // this is only needed during debugging
@@ -81,11 +81,6 @@ public class SuccinctCountingBloom implements Filter {
     }
 
     @Override
-    public boolean supportsAdd() {
-        return true;
-    }
-
-    @Override
     public void add(long key) {
         long hash = Hash.hash64(key, seed);
         int a = (int) (hash >>> 32);
@@ -98,11 +93,6 @@ public class SuccinctCountingBloom implements Filter {
             increment(index);
             a += b;
         }
-    }
-
-    @Override
-    public boolean supportsRemove() {
-        return true;
     }
 
     @Override

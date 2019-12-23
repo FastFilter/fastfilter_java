@@ -1,6 +1,6 @@
 package org.fastfilter.cuckoo;
 
-import org.fastfilter.Filter;
+import org.fastfilter.MutableFilter;
 import org.fastfilter.utils.Hash;
 
 import java.util.Random;
@@ -12,7 +12,7 @@ import java.util.Random;
  *
  * See "Cuckoo Filter: Practically Better Than Bloom".
  */
-public class CuckooPlus8 implements Filter {
+public class CuckooPlus8 implements MutableFilter {
 
     private static final int SHIFTED = 1;
     private static final int SECOND = 2;
@@ -30,7 +30,7 @@ public class CuckooPlus8 implements Filter {
 	        CuckooPlus8 f = new CuckooPlus8((int) (len / 0.94));
 	        try {
 		        for (long k : keys) {
-		            f.insert(k);
+		            f.add(k);
 		        }
 		        return f;
 	        } catch (IllegalStateException e) {
@@ -46,7 +46,8 @@ public class CuckooPlus8 implements Filter {
         this.seed = Hash.randomSeed();
     }
 
-    public void insert(long key) {
+    @Override
+    public void add(long key) {
         long hash = Hash.hash64(key, seed);
         int bucket = getBucket(hash);
         long fingerprint = getFingerprint(hash);

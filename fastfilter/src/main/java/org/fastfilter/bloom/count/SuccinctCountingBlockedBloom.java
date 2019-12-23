@@ -1,6 +1,6 @@
 package org.fastfilter.bloom.count;
 
-import org.fastfilter.Filter;
+import org.fastfilter.RemovableFilter;
 import org.fastfilter.utils.Hash;
 
 /**
@@ -14,7 +14,7 @@ import org.fastfilter.utils.Hash;
  * case of overflow, the counter is 8 bits per entry, plus some overhead. This
  * is only needed if the filter (locally) has a high load.
  */
-public class SuccinctCountingBlockedBloom implements Filter {
+public class SuccinctCountingBlockedBloom implements RemovableFilter {
 
     // whether to verify the counts
     // this is only needed during debugging
@@ -72,11 +72,6 @@ public class SuccinctCountingBlockedBloom implements Filter {
     }
 
     @Override
-    public boolean supportsAdd() {
-        return true;
-    }
-
-    @Override
     public void add(long key) {
         long hash = Hash.hash64(key, seed);
         int start = Hash.reduce((int) hash, buckets);
@@ -94,11 +89,6 @@ public class SuccinctCountingBlockedBloom implements Filter {
         if (a4 != a3) {
             increment(second, a4);
         }
-    }
-
-    @Override
-    public boolean supportsRemove() {
-        return true;
     }
 
     @Override

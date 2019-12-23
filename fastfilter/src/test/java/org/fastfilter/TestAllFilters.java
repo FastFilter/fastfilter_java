@@ -167,10 +167,10 @@ public class TestAllFilters {
         long bitCount = f.getBitCount();
         double bitsPerKey = (double) bitCount / len;
         double nanosPerRemove = -1;
-        if (f.supportsRemove()) {
+        if (f instanceof RemovableFilter) {
             time = System.nanoTime();
             for (int i = 0; i < len; i++) {
-                f.remove(keys[i]);
+                ((RemovableFilter)f).remove(keys[i]);
             }
             time = System.nanoTime() - time;
             nanosPerRemove = time / len;

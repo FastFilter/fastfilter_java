@@ -1,13 +1,13 @@
 package org.fastfilter.bloom;
 
-import org.fastfilter.Filter;
+import org.fastfilter.MutableFilter;
 import org.fastfilter.utils.Hash;
 
 /**
  * A standard Bloom filter.
  *
  */
-public class Bloom implements Filter {
+public class Bloom implements MutableFilter {
 
     public static Bloom construct(long[] keys, double bitsPerKey) {
         long n = keys.length;
@@ -43,11 +43,6 @@ public class Bloom implements Filter {
     }
 
     @Override
-    public boolean supportsAdd() {
-        return true;
-    }
-
-    @Override
     public void add(long key) {
         long hash = Hash.hash64(key, seed);
         int a = (int) (hash >>> 32);
@@ -71,5 +66,7 @@ public class Bloom implements Filter {
         }
         return true;
     }
+
+
 
 }

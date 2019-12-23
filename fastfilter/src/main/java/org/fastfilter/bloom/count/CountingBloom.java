@@ -1,12 +1,12 @@
 package org.fastfilter.bloom.count;
 
-import org.fastfilter.Filter;
+import org.fastfilter.RemovableFilter;
 import org.fastfilter.utils.Hash;
 
 /**
  * A standard counting Bloom filter, with 4 bits per "data bit" (entry).
  */
-public class CountingBloom implements Filter {
+public class CountingBloom implements RemovableFilter {
 
     public static CountingBloom construct(long[] keys, double bitsPerKey) {
         long n = keys.length;
@@ -42,11 +42,6 @@ public class CountingBloom implements Filter {
     }
 
     @Override
-    public boolean supportsAdd() {
-        return true;
-    }
-
-    @Override
     public void add(long key) {
         long hash = Hash.hash64(key, seed);
         int a = (int) (hash >>> 32);
@@ -56,11 +51,6 @@ public class CountingBloom implements Filter {
             counts[index >>> 4] += getBit(index);
             a += b;
         }
-    }
-
-    @Override
-    public boolean supportsRemove() {
-        return true;
     }
 
     @Override

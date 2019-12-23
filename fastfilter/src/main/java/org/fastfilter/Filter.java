@@ -1,5 +1,8 @@
 package org.fastfilter;
 
+import org.fastfilter.gcs.GolombCompressedSet;
+import org.fastfilter.mphf.MPHFilter;
+
 /**
  * An approximate membership filter.
  */
@@ -21,47 +24,33 @@ public interface Filter {
     long getBitCount();
 
     /**
-     * Whether the add operation (after construction) is supported.
-     *
-     * @return true if yes
-     */
-    default boolean supportsAdd() {
-        return false;
-    }
-
-    /**
-     * Add a key.
-     *
-     * @param key the key
-     */
-    default void add(long key) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Whether the remove operation is supported.
-     *
-     * @return true if yes
-     */
-    default boolean supportsRemove() {
-        return false;
-    }
-
-    /**
-     * Remove a key.
-     *
-     * @param key the key
-     */
-    default void remove(long key) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * Get the number of set bits. This should be 0 for an empty filter.
      *
      */
     default long cardinality() {
         return -1;
     }
+
+
+    static Filters.Xor xor() {
+        return new FilterBuilders.XorFilterBuilder();
+    }
+
+    static Filters.Cuckoo cuckoo() {
+        return new FilterBuilders.CuckooFilterBuilder();
+    }
+
+    static Filters.Bloom bloom() {
+        return new FilterBuilders.BloomFilterBuilder();
+    }
+
+    static Filters.BitsPerKeyChoice<Filter, Filters.MPH> minimalPerfectHash() {
+        return new FilterBuilders.GenericBuilder<>(MPHFilter::construct);
+    }
+
+    static Filters.BitsPerKeyChoice<Filter, Filters.GCS> golombCompressedSet() {
+        return new FilterBuilders.GenericBuilder<>(GolombCompressedSet::construct);
+    }
+
 
 }
