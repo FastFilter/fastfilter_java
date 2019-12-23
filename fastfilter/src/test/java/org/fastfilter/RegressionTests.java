@@ -21,8 +21,7 @@ public class RegressionTests {
                 // actual this one is impossible to reproduce because of the volatile seed
                 {XOR_SIMPLE, 6831634639270950343L, new long[]{1, 2, 3}},
                 {CUCKOO_8, 6335419348330489927L, new long[]{1, 2, 3}},
-                {CUCKOO_16, -9087718164446355442L, new long[]{1, 2, 3}},
-                {GCS2, -2130647756636796307L, new long[]{1, 2, 3}}
+                {CUCKOO_16, -9087718164446355442L, new long[]{1, 2, 3}}
         };
     }
 
