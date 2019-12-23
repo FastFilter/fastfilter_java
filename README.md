@@ -1,5 +1,7 @@
 # Fast Approximate Membership Filters
 
+[![Build Status](https://travis-ci.com/FastFilter/fastfilter_java.svg?branch=master)](https://travis-ci.com/FastFilter/fastfilter_java)
+
 The following filter types are currently implemented:
 
 * Bloom filter: the 'standard' algorithm
@@ -53,3 +55,14 @@ Passwords not in the list will show "Not found" with more than 99% probability,
 and with less than 1% probability "Found" or "Found; common".
 
 Internally, the tool uses a xor+ filter (see above) with 8 bits per fingerprint. Actually, 1024 smaller filters (segments) are made, the segment id being the highest 10 bits of the key. The lowest bit of the key is set to either 0 (regular) or 1 (common), and so two lookups are made per password. Because of that, the false positive rate is twice of what it would be with just one lookup (0.0078 instead of 0.0039). A regular Bloom filter with the same guarantees would be ~760 MB. For each lookup, one filter segment (so, less than 1 MB) are read from the file.
+
+
+
+# Implements of xor filters in other programming languages
+
+* [Erlang](https://github.com/mpope9/exor_filter)
+* Rust: [1](https://github.com/bnclabs/xorfilter) and [2](https://github.com/codri/xorfilter-rs)
+* [C++](https://github.com/FastFilter/fastfilter_cpp)
+* [Go](https://github.com/FastFilter/xorfilter)
+* [C](https://github.com/FastFilter/xor_singleheader)
+
