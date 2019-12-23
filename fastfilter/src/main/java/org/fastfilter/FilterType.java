@@ -98,25 +98,25 @@ public enum FilterType {
     CUCKOO_8 {
         @Override
         public Filter construct(long[] keys, int setting) {
-            return Cuckoo8.construct(keys, SEED);
+            return Cuckoo8.construct(keys, defaultSeedingStrategy());
         }
     },
     CUCKOO_16 {
         @Override
         public Filter construct(long[] keys, int setting) {
-            return Cuckoo16.construct(keys, SEED);
+            return Cuckoo16.construct(keys, defaultSeedingStrategy());
         }
     },
     CUCKOO_PLUS_8 {
         @Override
         public Filter construct(long[] keys, int setting) {
-            return CuckooPlus8.construct(keys, SEED);
+            return CuckooPlus8.construct(keys, defaultSeedingStrategy());
         }
     },
     CUCKOO_PLUS_16 {
         @Override
         public Filter construct(long[] keys, int setting) {
-            return CuckooPlus16.construct(keys, SEED);
+            return CuckooPlus16.construct(keys, defaultSeedingStrategy());
         }
     },
     GCS {

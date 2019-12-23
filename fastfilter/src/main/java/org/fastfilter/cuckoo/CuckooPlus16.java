@@ -4,6 +4,7 @@ import org.fastfilter.MutableFilter;
 import org.fastfilter.utils.Hash;
 
 import java.util.Random;
+import java.util.function.LongSupplier;
 
 /**
  * This is a Cuckoo Filter implementation.
@@ -24,10 +25,10 @@ public class CuckooPlus16 implements MutableFilter {
     private final int bucketCount;
     private final Random random = new Random(1);
 
-    public static CuckooPlus16 construct(long[] keys, long seed) {
+    public static CuckooPlus16 construct(long[] keys, LongSupplier seedingStrategy) {
         int len = keys.length;
         while (true) {
-	        CuckooPlus16 f = new CuckooPlus16((int) (len / 0.94), seed);
+	        CuckooPlus16 f = new CuckooPlus16((int) (len / 0.94), seedingStrategy.getAsLong());
 	        try {
 		        for (long k : keys) {
 		            f.add(k);

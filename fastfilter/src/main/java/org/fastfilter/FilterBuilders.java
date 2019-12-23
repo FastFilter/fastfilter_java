@@ -89,13 +89,16 @@ class FilterBuilders {
 
         @Override
         public MutableFilter build(long[] keys) {
-            long seed = seedingStrategy().getAsLong();
             switch (bitsPerKey >>> 3) {
                 case 0:
                 case 1:
-                    return plus ? CuckooPlus8.construct(keys, seed) : Cuckoo8.construct(keys, seed);
+                    return plus
+                            ? CuckooPlus8.construct(keys, seedingStrategy())
+                            : Cuckoo8.construct(keys, seedingStrategy());
                 default:
-                    return plus ? CuckooPlus16.construct(keys, seed) : Cuckoo16.construct(keys, seed);
+                    return plus
+                            ? CuckooPlus16.construct(keys, seedingStrategy())
+                            : Cuckoo16.construct(keys, seedingStrategy());
             }
         }
     }
