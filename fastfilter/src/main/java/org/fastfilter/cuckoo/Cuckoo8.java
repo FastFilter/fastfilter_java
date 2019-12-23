@@ -22,11 +22,11 @@ public class Cuckoo8 implements MutableFilter {
     private final int bucketCount;
     private final Random random = new Random(1);
 
-    public static Cuckoo8 construct(long[] keys) {
+    public static Cuckoo8 construct(long[] keys, long seed) {
         int len = keys.length;
         while (true) {
             try {
-                Cuckoo8 f = new Cuckoo8((int) (len / 0.95));
+                Cuckoo8 f = new Cuckoo8((int) (len / 0.95), seed);
                 for (long k : keys) {
                     f.add(k);
                 }
@@ -37,11 +37,11 @@ public class Cuckoo8 implements MutableFilter {
         }
     }
 
-    public Cuckoo8(int capacity) {
+    public Cuckoo8(int capacity, long seed) {
         // bucketCount needs to be even for bucket2 to work
         bucketCount = (int) Math.ceil((double) capacity / ENTRIES_PER_BUCKET) / 2 * 2;
         this.data = new int[bucketCount];
-        this.seed = Hash.randomSeed();
+        this.seed = seed;
     }
 
     public void add(long key) {

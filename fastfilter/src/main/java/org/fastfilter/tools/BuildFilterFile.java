@@ -6,6 +6,7 @@ import org.fastfilter.xorplus.XorPlus8;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.SplittableRandom;
 
 public class BuildFilterFile {
 
@@ -85,7 +86,7 @@ public class BuildFilterFile {
         for (int i = 0; i < keys.size(); i++) {
             array[i] = keys.get(i);
         }
-        return XorPlus8.construct(array).getData();
+        return XorPlus8.construct(array, new SplittableRandom(1)::nextLong).getData();
     }
 
 }

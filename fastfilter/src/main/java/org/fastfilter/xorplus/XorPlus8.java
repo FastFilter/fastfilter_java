@@ -5,6 +5,7 @@ import org.fastfilter.utils.Hash;
 
 import java.io.*;
 import java.util.BitSet;
+import java.util.function.LongSupplier;
 
 /**
  * A slower implementation of the Xor filter, which uses slightly less space
@@ -72,16 +73,8 @@ public class XorPlus8 implements Filter {
         return (int) (HASHES + (long) FACTOR_TIMES_100 * size / 100);
     }
 
-    public static XorPlus8 construct(long[] keys) {
-        return new XorPlus8(keys);
-    }
-
-    public XorPlus8(int size, byte[] fingerprints) {
-        this.size = size;
-        this.arrayLength = getArrayLength(size);
-        bitCount = arrayLength * BITS_PER_FINGERPRINT;
-        this.blockLength = arrayLength / HASHES;
-        this.fingerprints = fingerprints;
+    public static XorPlus8 construct(long[] keys, LongSupplier seedingStrategy) {
+        return new XorPlus8(keys, seedingStrategy);
     }
 
     /**
@@ -101,7 +94,7 @@ public class XorPlus8 implements Filter {
      *
      * @param keys the list of entries (keys)
      */
-    public XorPlus8(long[] keys) {
+    public XorPlus8(long[] keys, LongSupplier seedingStrategy) {
         this.size = keys.length;
         arrayLength = getArrayLength(size);
         bitCount = arrayLength * BITS_PER_FINGERPRINT;
@@ -122,7 +115,7 @@ public class XorPlus8 implements Filter {
         // (which is extremely unlikely) we would have to use a larger hashIndex
         long seed = 0;
         do {
-            seed = Hash.randomSeed();
+            seed = seedingStrategy.getAsLong();
             // we use an second table t2 to keep the list of all keys that map
             // to a given entry (with a broken hash function, all keys could map
             // to entry zero).

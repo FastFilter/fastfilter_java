@@ -44,11 +44,11 @@ public interface Filter {
         return new FilterBuilders.BloomFilterBuilder();
     }
 
-    static Filters.BitsPerKeyChoice<Filter, Filters.MPH> minimalPerfectHash() {
+    static Filters.FilterConfiguration<Filter, Filters.MPH> minimalPerfectHash() {
         return new FilterBuilders.GenericBuilder<>(MPHFilter::construct);
     }
 
-    static Filters.BitsPerKeyChoice<Filter, Filters.GCS> golombCompressedSet() {
+    static Filters.FilterConfiguration<Filter, Filters.GCS> golombCompressedSet() {
         return new FilterBuilders.GenericBuilder<>(GolombCompressedSet::construct);
     }
 

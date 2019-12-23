@@ -8,10 +8,10 @@ import org.fastfilter.utils.Hash;
  */
 public class CountingBloom implements RemovableFilter {
 
-    public static CountingBloom construct(long[] keys, double bitsPerKey) {
+    public static CountingBloom construct(long[] keys, double bitsPerKey, long seed) {
         long n = keys.length;
         int k = getBestK(bitsPerKey);
-        CountingBloom f = new CountingBloom((int) n, bitsPerKey, k);
+        CountingBloom f = new CountingBloom((int) n, bitsPerKey, k, seed);
         for(long x : keys) {
             f.add(x);
         }
@@ -32,10 +32,10 @@ public class CountingBloom implements RemovableFilter {
         return counts.length * 64L;
     }
 
-    CountingBloom(int entryCount, double bitsPerKey, int k) {
+    CountingBloom(int entryCount, double bitsPerKey, int k, long seed) {
         entryCount = Math.max(1, entryCount);
         this.k = k;
-        this.seed = Hash.randomSeed();
+        this.seed = seed;
         this.bits = (long) (4 * entryCount * bitsPerKey);
         arraySize = (int) ((bits + 63) / 64);
         counts = new long[arraySize];

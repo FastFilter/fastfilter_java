@@ -13,27 +13,43 @@ import org.fastfilter.xor.Xor8;
 import org.fastfilter.xor.XorSimple2;
 import org.fastfilter.xorplus.XorPlus8;
 
+import java.util.Objects;
+import java.util.SplittableRandom;
+import java.util.function.LongSupplier;
+
 class FilterBuilders {
 
-    abstract static class ConfigurableBitsPerKey<T extends Filter, U extends Filters.BitsPerKeyChoice<T, U>>
-            implements Filters.BitsPerKeyChoice<T, U> {
+    static final long SEED = 0xACE_5EEDL;
+
+    static LongSupplier defaultSeedingStrategy() {
+        return new SplittableRandom(SEED)::nextLong;
+    }
+
+    abstract static class FilterConfigs<T extends Filter, U extends Filters.FilterConfiguration<T, U>>
+            implements Filters.FilterConfiguration<T, U> {
 
         protected int bitsPerKey = 64;
+        private LongSupplier seedingStrategy;
 
-        /**
-         * How many bits to use per key (affects false positive rate)
-         * @param bitsPerKey the (preferred) number of bits per key stored in the filter
-         * @return a builder with bits per key set
-         */
         @Override
         @SuppressWarnings("unchecked")
         public U withBitsPerKey(int bitsPerKey) {
             this.bitsPerKey = bitsPerKey;
             return (U)this;
         }
+
+        @Override
+        public U withSeedingStrategy(LongSupplier strategy) {
+            this.seedingStrategy = strategy;
+            return (U)this;
+        }
+
+        protected LongSupplier seedingStrategy() {
+            return Objects.requireNonNullElseGet(seedingStrategy, FilterBuilders::defaultSeedingStrategy);
+        }
     }
 
-    static class XorFilterBuilder extends ConfigurableBitsPerKey<Filter, Xor> implements Xor {
+    static class XorFilterBuilder extends FilterConfigs<Filter, Xor> implements Xor {
 
         private boolean plus = false;
 
@@ -47,21 +63,21 @@ class FilterBuilders {
         @Override
         public Filter build(long[] keys) {
             if (plus) {
-                return new XorPlus8(keys);
+                return new XorPlus8(keys, seedingStrategy());
             }
             switch (bitsPerKey >>> 3) {
                 case 0:
                 case 1:
-                    return new Xor8(keys);
+                    return new Xor8(keys, seedingStrategy());
                 case 2:
-                    return new Xor16(keys);
+                    return new Xor16(keys, seedingStrategy());
                 default:
                     return new XorSimple2(keys);
             }
         }
     }
 
-    static class CuckooFilterBuilder extends ConfigurableBitsPerKey<MutableFilter, Filters.Cuckoo> implements Filters.Cuckoo {
+    static class CuckooFilterBuilder extends FilterConfigs<MutableFilter, Filters.Cuckoo> implements Filters.Cuckoo {
 
         private boolean plus;
 
@@ -73,12 +89,13 @@ class FilterBuilders {
 
         @Override
         public MutableFilter build(long[] keys) {
+            long seed = seedingStrategy().getAsLong();
             switch (bitsPerKey >>> 3) {
                 case 0:
                 case 1:
-                    return plus ? CuckooPlus8.construct(keys) : Cuckoo8.construct(keys);
+                    return plus ? CuckooPlus8.construct(keys, seed) : Cuckoo8.construct(keys, seed);
                 default:
-                    return plus ? CuckooPlus16.construct(keys) : Cuckoo16.construct(keys);
+                    return plus ? CuckooPlus16.construct(keys, seed) : Cuckoo16.construct(keys, seed);
             }
         }
     }
@@ -88,7 +105,7 @@ class FilterBuilders {
     private static final int SUCCINCT = 4;
     private static final int RANKED = 8;
 
-    static class BloomFilterBuilder extends ConfigurableBitsPerKey<MutableFilter, Filters.Bloom>
+    static class BloomFilterBuilder extends FilterConfigs<MutableFilter, Filters.Bloom>
             implements Filters.Bloom {
 
         private int flags = 0;
@@ -106,19 +123,19 @@ class FilterBuilders {
 
         @Override
         public MutableFilter build(long[] keys) {
-            // these casts are safe so long as the caller abides by the public API
+            long seed = seedingStrategy().getAsLong();
             switch (flags) {
                 case 0:
-                    return Bloom.construct(keys, bitsPerKey);
+                    return Bloom.construct(keys, bitsPerKey, seed);
                 case BLOCKED:
-                    return BlockedBloom.construct(keys, bitsPerKey);
+                    return BlockedBloom.construct(keys, bitsPerKey, seed);
                 default:
                     throw new IllegalStateException("Impossible state reached");
             }
         }
     }
 
-    static class CountingBloomFilterBuilder extends ConfigurableBitsPerKey<RemovableFilter, Filters.CountingBloom>
+    static class CountingBloomFilterBuilder extends FilterConfigs<RemovableFilter, Filters.CountingBloom>
             implements Filters.CountingBloom, Filters.SuccinctBloom {
 
         private int flags;
@@ -147,17 +164,18 @@ class FilterBuilders {
 
         @Override
         public RemovableFilter build(long[] keys) {
+            long seed = seedingStrategy().getAsLong();
             switch (flags) {
                 case COUNTING:
-                    return CountingBloom.construct(keys, bitsPerKey);
+                    return CountingBloom.construct(keys, bitsPerKey, seed);
                 case SUCCINCT | COUNTING:
-                    return SuccinctCountingBloom.construct(keys, bitsPerKey);
+                    return SuccinctCountingBloom.construct(keys, bitsPerKey, seed);
                 case SUCCINCT | COUNTING | BLOCKED:
-                    return SuccinctCountingBlockedBloom.construct(keys, bitsPerKey);
+                    return SuccinctCountingBlockedBloom.construct(keys, bitsPerKey, seed);
                 case SUCCINCT | COUNTING | RANKED:
-                    return SuccinctCountingBloomRanked.construct(keys, bitsPerKey);
+                    return SuccinctCountingBloomRanked.construct(keys, bitsPerKey, seed);
                 case SUCCINCT | COUNTING | BLOCKED | RANKED:
-                    return SuccinctCountingBlockedBloomRanked.construct(keys, bitsPerKey);
+                    return SuccinctCountingBlockedBloomRanked.construct(keys, bitsPerKey, seed);
                 default:
                     throw new IllegalStateException("Impossible state reached");
             }
@@ -166,19 +184,28 @@ class FilterBuilders {
 
     @FunctionalInterface
     interface ConstructFromArray<T extends Filter> {
+        T construct(long[] keys, int bitsPerKey, long seed);
+    }
+
+    @FunctionalInterface
+    interface ConstructFromArrayUnseeded<T extends Filter> {
         T construct(long[] keys, int bitsPerKey);
     }
 
-    static class GenericBuilder<T extends Filter, U extends Filters.BitsPerKeyChoice<T, U>> extends ConfigurableBitsPerKey<T, U> {
+    static class GenericBuilder<T extends Filter, U extends Filters.FilterConfiguration<T, U>> extends FilterConfigs<T, U> {
         private final ConstructFromArray<T> constructFromArray;
 
         GenericBuilder(ConstructFromArray<T> constructFromArray) {
             this.constructFromArray = constructFromArray;
         }
 
+        GenericBuilder(ConstructFromArrayUnseeded<T> constructFromArrayUnseeded) {
+            this.constructFromArray = (keys, bitsPerKey, seed) -> constructFromArrayUnseeded.construct(keys, bitsPerKey);
+        }
+
         @Override
         public T build(long[] keys) {
-            return constructFromArray.construct(keys, bitsPerKey);
+            return constructFromArray.construct(keys, bitsPerKey, seedingStrategy().getAsLong());
         }
     }
 

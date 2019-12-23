@@ -1,14 +1,6 @@
 package org.fastfilter.utils;
 
-import java.util.Random;
-
 public class Hash {
-
-    private static Random random = new Random();
-
-    public static void setSeed(long seed) {
-        random.setSeed(seed);
-    }
 
     public static long hash64(long x, long seed) {
         x += seed;
@@ -16,10 +8,6 @@ public class Hash {
         x = (x ^ (x >>> 23)) * 0xc4ceb9fe1a85ec53L;
         x = x ^ (x >>> 33);
         return x;
-    }
-
-    public static long randomSeed() {
-        return random.nextLong();
     }
 
     /**

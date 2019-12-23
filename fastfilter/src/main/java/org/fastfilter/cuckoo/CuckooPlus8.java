@@ -4,6 +4,7 @@ import org.fastfilter.MutableFilter;
 import org.fastfilter.utils.Hash;
 
 import java.util.Random;
+import java.util.SplittableRandom;
 
 /**
  * This is a Cuckoo Filter implementation.
@@ -22,12 +23,12 @@ public class CuckooPlus8 implements MutableFilter {
     private byte[] data;
     private final long seed;
     private final int bucketCount;
-    private final Random random = new Random(1);
+    private final SplittableRandom random = new SplittableRandom(1);
 
-    public static CuckooPlus8 construct(long[] keys) {
+    public static CuckooPlus8 construct(long[] keys, long seed) {
         int len = keys.length;
         while (true) {
-	        CuckooPlus8 f = new CuckooPlus8((int) (len / 0.94));
+	        CuckooPlus8 f = new CuckooPlus8((int) (len / 0.94), seed);
 	        try {
 		        for (long k : keys) {
 		            f.add(k);
@@ -39,11 +40,11 @@ public class CuckooPlus8 implements MutableFilter {
         }
     }
 
-    public CuckooPlus8(int capacity) {
+    public CuckooPlus8(int capacity, long seed) {
         // bucketCount needs to be even for bucket2 to work
         bucketCount = (int) Math.ceil((double) capacity) / 2 * 2;
         this.data = new byte[bucketCount + 1];
-        this.seed = Hash.randomSeed();
+        this.seed = seed;
     }
 
     @Override

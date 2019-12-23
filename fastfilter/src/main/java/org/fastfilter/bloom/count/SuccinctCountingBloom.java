@@ -20,10 +20,10 @@ public class SuccinctCountingBloom implements RemovableFilter {
     // this is only needed during debugging
     private static final boolean VERIFY_COUNTS = false;
 
-    public static SuccinctCountingBloom construct(long[] keys, double bitsPerKey) {
+    public static SuccinctCountingBloom construct(long[] keys, double bitsPerKey, long seed) {
         long n = keys.length;
         int k = getBestK(bitsPerKey);
-        SuccinctCountingBloom f = new SuccinctCountingBloom((int) n, bitsPerKey, k);
+        SuccinctCountingBloom f = new SuccinctCountingBloom((int) n, bitsPerKey, k, seed);
         for(long x : keys) {
             f.add(x);
         }
@@ -65,10 +65,10 @@ public class SuccinctCountingBloom implements RemovableFilter {
         return data.getBitCount() + counts.getBitCount() + 64 * overflow.length;
     }
 
-    SuccinctCountingBloom(int entryCount, double bitsPerKey, int k) {
+    SuccinctCountingBloom(int entryCount, double bitsPerKey, int k, long seed) {
         entryCount = Math.max(1, entryCount);
         this.k = k;
-        this.seed = Hash.randomSeed();
+        this.seed = seed;
         long bits = (long) (entryCount * bitsPerKey);
         arraySize = (int) ((bits + 63) / 64);
         data = new BitField(64 * (arraySize + 10));

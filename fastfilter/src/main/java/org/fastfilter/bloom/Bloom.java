@@ -9,10 +9,10 @@ import org.fastfilter.utils.Hash;
  */
 public class Bloom implements MutableFilter {
 
-    public static Bloom construct(long[] keys, double bitsPerKey) {
+    public static Bloom construct(long[] keys, double bitsPerKey, long seed) {
         long n = keys.length;
         int k = getBestK(bitsPerKey);
-        Bloom f = new Bloom((int) n, bitsPerKey, k);
+        Bloom f = new Bloom((int) n, bitsPerKey, k, seed);
         for(long x : keys) {
             f.add(x);
         }
@@ -33,10 +33,10 @@ public class Bloom implements MutableFilter {
         return data.length * 64L;
     }
 
-    Bloom(int entryCount, double bitsPerKey, int k) {
+    Bloom(int entryCount, double bitsPerKey, int k, long seed) {
         entryCount = Math.max(1, entryCount);
         this.k = k;
-        this.seed = Hash.randomSeed();
+        this.seed = seed;
         this.bits = (long) (entryCount * bitsPerKey);
         arraySize = (int) ((bits + 63) / 64);
         data = new long[arraySize];

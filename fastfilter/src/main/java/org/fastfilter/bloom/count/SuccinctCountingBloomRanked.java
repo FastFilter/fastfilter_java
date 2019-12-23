@@ -22,10 +22,10 @@ public class SuccinctCountingBloomRanked implements RemovableFilter {
 
     // static boolean debugPrint;
 
-    public static SuccinctCountingBloomRanked construct(long[] keys, int bitsPerKey) {
+    public static SuccinctCountingBloomRanked construct(long[] keys, int bitsPerKey, long seed) {
         long n = keys.length;
         int k = getBestK(bitsPerKey);
-        SuccinctCountingBloomRanked f = new SuccinctCountingBloomRanked((int) n, bitsPerKey, k);
+        SuccinctCountingBloomRanked f = new SuccinctCountingBloomRanked((int) n, bitsPerKey, k, seed);
         for(long x : keys) {
             f.add(x);
         }
@@ -58,9 +58,9 @@ public class SuccinctCountingBloomRanked implements RemovableFilter {
         return 64L * data.length + 64L * counts.length + 64L * overflow.length;
     }
 
-    SuccinctCountingBloomRanked(int entryCount, int bitsPerKey, int k) {
+    SuccinctCountingBloomRanked(int entryCount, int bitsPerKey, int k, long seed) {
         entryCount = Math.max(1, entryCount);
-        this.seed = Hash.randomSeed();
+        this.seed = seed;
         long bits = (long) (entryCount * bitsPerKey);
         this.buckets = (int) bits / 64;
         int arrayLength = (buckets + 16);

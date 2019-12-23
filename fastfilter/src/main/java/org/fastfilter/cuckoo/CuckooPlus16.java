@@ -24,10 +24,10 @@ public class CuckooPlus16 implements MutableFilter {
     private final int bucketCount;
     private final Random random = new Random(1);
 
-    public static CuckooPlus16 construct(long[] keys) {
+    public static CuckooPlus16 construct(long[] keys, long seed) {
         int len = keys.length;
         while (true) {
-	        CuckooPlus16 f = new CuckooPlus16((int) (len / 0.94));
+	        CuckooPlus16 f = new CuckooPlus16((int) (len / 0.94), seed);
 	        try {
 		        for (long k : keys) {
 		            f.add(k);
@@ -39,11 +39,11 @@ public class CuckooPlus16 implements MutableFilter {
         }
     }
 
-    public CuckooPlus16(int capacity) {
+    public CuckooPlus16(int capacity, long seed) {
         // bucketCount needs to be even for bucket2 to work
         bucketCount = (int) Math.ceil((double) capacity) / 2 * 2;
         this.data = new short[bucketCount + 1];
-        this.seed = Hash.randomSeed();
+        this.seed = seed;
     }
 
     @Override

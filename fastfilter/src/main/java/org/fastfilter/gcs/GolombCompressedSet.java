@@ -22,15 +22,15 @@ public class GolombCompressedSet implements Filter {
     private final MonotoneList start;
     private final int startBuckets;
 
-    public static GolombCompressedSet construct(long[] keys, int setting) {
-        return new GolombCompressedSet(keys, keys.length, setting);
+    public static GolombCompressedSet construct(long[] keys, int setting, long seed) {
+        return new GolombCompressedSet(keys, keys.length, setting, seed);
     }
 
-    GolombCompressedSet(long[] keys, int len, int fingerprintBits) {
+    GolombCompressedSet(long[] keys, int len, int fingerprintBits, long seed) {
         if (fingerprintBits < 4 || fingerprintBits > 50) {
             throw new IllegalArgumentException();
         }
-        seed = Hash.randomSeed();
+        this.seed = seed;
         // this was found experimentally
         golombShift = fingerprintBits - 1;
         int averageBucketSize = 64;

@@ -4,6 +4,7 @@ import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
 import java.io.*;
+import java.util.function.LongSupplier;
 
 /**
  * The Xor Filter, a new algorithm that can replace a bloom filter.
@@ -34,11 +35,11 @@ public class Xor8 implements Filter {
         return (int) (HASHES + (long) FACTOR_TIMES_100 * size / 100);
     }
 
-    public static Xor8 construct(long[] keys) {
-        return new Xor8(keys);
+    public static Xor8 construct(long[] keys, LongSupplier seedingStrategy) {
+        return new Xor8(keys, seedingStrategy);
     }
 
-    public Xor8(long[] keys) {
+    public Xor8(long[] keys, LongSupplier seedingStrategy) {
         this.size = keys.length;
         arrayLength = getArrayLength(size);
         bitCount = arrayLength * BITS_PER_FINGERPRINT;
@@ -49,7 +50,7 @@ public class Xor8 implements Filter {
         int reverseOrderPos;
         long seed;
         do {
-            seed = Hash.randomSeed();
+            seed = seedingStrategy.getAsLong();
             byte[] t2count = new byte[m];
             long[] t2 = new long[m];
             for (long k : keys) {

@@ -11,9 +11,9 @@ import org.fastfilter.utils.Hash;
  */
 public class BlockedBloom implements MutableFilter {
 
-    public static BlockedBloom construct(long[] keys, int bitsPerKey) {
+    public static BlockedBloom construct(long[] keys, int bitsPerKey, long seed) {
         long n = keys.length;
-        BlockedBloom f = new BlockedBloom((int) n, bitsPerKey);
+        BlockedBloom f = new BlockedBloom((int) n, bitsPerKey, seed);
         for(long x : keys) {
             f.add(x);
         }
@@ -28,10 +28,10 @@ public class BlockedBloom implements MutableFilter {
         return data.length * 64L;
     }
 
-    BlockedBloom(int entryCount, int bitsPerKey) {
+    BlockedBloom(int entryCount, int bitsPerKey, long seed) {
         // bitsPerKey = 11;
         entryCount = Math.max(1, entryCount);
-        this.seed = Hash.randomSeed();
+        this.seed = seed;
         long bits = (long) entryCount * bitsPerKey;
         this.buckets = (int) bits / 64;
         data = new long[(buckets + 16)];

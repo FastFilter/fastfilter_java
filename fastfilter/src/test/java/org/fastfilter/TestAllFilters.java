@@ -86,7 +86,6 @@ This could be, for a LSM tree:
 public class TestAllFilters {
 
     public static void main(String... args) {
-        Hash.setSeed(1);
         for (int size = 1_000_000; size <= 10_000_000; size *= 10) {
             System.out.println("size " + size);
             for (int test = 0; test < 10; test++) {
