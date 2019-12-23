@@ -89,7 +89,7 @@ public class SuccinctCountingBlockedBloomRanked implements Filter {
         if (a2 != a1) {
             increment(start, a2);
         }
-        int second = start + 1 + (int) (hash >>> 60);
+        int second = start + (int) (hash >>> 60);
         int a3 = (int) ((hash >> 12) & 63);
         int a4 = (int) ((hash >> 18) & 63);
         increment(second, a3);
@@ -114,7 +114,7 @@ public class SuccinctCountingBlockedBloomRanked implements Filter {
         if (a2 != a1) {
             decrement(start, a2);
         }
-        int second = start + 1 + (int) (hash >>> 60);
+        int second = start + (int) (hash >>> 60);
         int a3 = (int) ((hash >> 12) & 63);
         int a4 = (int) ((hash >> 18) & 63);
         decrement(second, a3);
@@ -144,7 +144,7 @@ public class SuccinctCountingBlockedBloomRanked implements Filter {
         int start = Hash.reduce((int) hash, buckets);
         hash = hash ^ Long.rotateLeft(hash, 32);
         long a = data[start];
-        long b = data[start + 1 + (int) (hash >>> 60)];
+        long b = data[start + (int) (hash >>> 60)];
         long m1 = (1L << hash) | (1L << (hash >> 6));
         long m2 = (1L << (hash >> 12)) | (1L << (hash >> 18));
         return ((m1 & a) == m1) && ((m2 & b) == m2);

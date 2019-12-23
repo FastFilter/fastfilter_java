@@ -39,7 +39,7 @@ public class Cuckoo8 implements Filter {
 
     public Cuckoo8(int capacity) {
         // bucketCount needs to be even for bucket2 to work
-        bucketCount = (int) Math.ceil((double) capacity / ENTRIES_PER_BUCKET) / 2 * 2;
+        bucketCount = Math.max(1, (int) Math.ceil((double) capacity / ENTRIES_PER_BUCKET) / 2 * 2);
         this.data = new int[bucketCount];
         this.seed = Hash.randomSeed();
     }

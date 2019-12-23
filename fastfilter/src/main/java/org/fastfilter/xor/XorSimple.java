@@ -51,7 +51,7 @@ public class XorSimple implements Filter {
             }
         }
         int si = 0;
-        while (si < 2 * keys.length) {
+        while (si < 2 * keys.length && qi > 0) {
             int i = Q[--qi];
             if (C[i] == 1) {
                 long x = H[i];
