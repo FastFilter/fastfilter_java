@@ -1,8 +1,31 @@
 package org.fastfilter;
 
+import org.fastfilter.gcs.GolombCompressedSet;
+import org.fastfilter.mphf.MPHFilter;
+
 import java.util.function.LongSupplier;
 
 public final class Filters {
+
+    static Filters.Xor xor() {
+        return new FilterBuilders.XorFilterBuilder();
+    }
+
+    static Filters.Cuckoo cuckoo() {
+        return new FilterBuilders.CuckooFilterBuilder();
+    }
+
+    static Filters.Bloom bloom() {
+        return new FilterBuilders.BloomFilterBuilder();
+    }
+
+    static Filters.FilterConfiguration<Filter, Filters.MPH> minimalPerfectHash() {
+        return new FilterBuilders.GenericBuilder<>(MPHFilter::construct);
+    }
+
+    static Filters.FilterConfiguration<Filter, Filters.GCS> golombCompressedSet() {
+        return new FilterBuilders.GenericBuilder<>(GolombCompressedSet::construct);
+    }
 
     interface Buildable<T extends Filter> {
         /**

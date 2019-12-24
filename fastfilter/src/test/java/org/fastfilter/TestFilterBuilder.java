@@ -3,6 +3,7 @@ package org.fastfilter;
 import org.fastfilter.bloom.BlockedBloom;
 import org.fastfilter.bloom.Bloom;
 import org.fastfilter.bloom.count.*;
+import org.fastfilter.bloom.count.CountingBloom;
 import org.fastfilter.cuckoo.Cuckoo16;
 import org.fastfilter.cuckoo.Cuckoo8;
 import org.fastfilter.cuckoo.CuckooPlus16;
@@ -15,7 +16,7 @@ import org.junit.Test;
 
 import java.util.stream.LongStream;
 
-import static org.fastfilter.Filter.*;
+import static org.fastfilter.Filters.*;
 import static org.junit.Assert.*;
 
 public class TestFilterBuilder {
