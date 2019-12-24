@@ -149,7 +149,8 @@ public class Select {
      * @return the position (0 for first bit, 63 for last)
      */
     public static int selectInLong(long x, int n) {
-        assert n < Long.bitCount(x);
+        // TODO this adds bytecode weight which influence inlining decisions
+        assert n < Long.bitCount(x): n + " >= " + Long.bitCount(x);
         // Phase 1: sums by byte
         long byteSums = x - ((x & 0xa * ONES_STEP_4) >>> 1);
         byteSums = (byteSums & 3 * ONES_STEP_4) +

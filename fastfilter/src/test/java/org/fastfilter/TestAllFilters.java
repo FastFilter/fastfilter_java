@@ -90,8 +90,8 @@ public class TestAllFilters {
         for (int size = 1_000_000; size <= 10_000_000; size *= 10) {
             System.out.println("size " + size);
             for (int test = 0; test < 10; test++) {
-//                test(FilterType.BLOOM, size, test, true);
-//                test(FilterType.BLOCKED_BLOOM, size, test, true);
+                test(FilterType.BLOOM, size, test, true);
+                test(FilterType.BLOCKED_BLOOM, size, test, true);
                 test(FilterType.COUNTING_BLOOM, size, test, true);
                 test(FilterType.SUCCINCT_COUNTING_BLOOM, size, test, true);
                 test(FilterType.SUCCINCT_COUNTING_BLOOM_RANKED, size, test, true);

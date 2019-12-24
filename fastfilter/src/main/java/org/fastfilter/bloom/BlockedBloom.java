@@ -34,7 +34,7 @@ public class BlockedBloom implements Filter {
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;
         this.buckets = (int) bits / 64;
-        data = new long[(buckets + 16)];
+        data = new long[buckets + 16 + 1];
     }
 
     @Override
@@ -50,7 +50,7 @@ public class BlockedBloom implements Filter {
         long m1 = (1L << hash) | (1L << (hash >> 6));
         long m2 = (1L << (hash >> 12)) | (1L << (hash >> 18));
         data[start] |= m1;
-        data[start + (int) (hash >>> 60)] |= m2;
+        data[start + 1 + (int) (hash >>> 60)] |= m2;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class BlockedBloom implements Filter {
         int start = Hash.reduce((int) hash, buckets);
         hash = hash ^ Long.rotateLeft(hash, 32);
         long a = data[start];
-        long b = data[start + (int) (hash >>> 60)];
+        long b = data[start + 1 + (int) (hash >>> 60)];
         long m1 = (1L << hash) | (1L << (hash >> 6));
         long m2 = (1L << (hash >> 12)) | (1L << (hash >> 18));
         return ((m1 & a) == m1) && ((m2 & b) == m2);
