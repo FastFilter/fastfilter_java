@@ -25,6 +25,7 @@ Reference: [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters](https
 * [C++](https://github.com/FastFilter/fastfilter_cpp)
 * [Go](https://github.com/FastFilter/xorfilter)
 * [C](https://github.com/FastFilter/xor_singleheader)
+* [C99](https://github.com/skeeto/xf8)
 * [Python](https://github.com/GreyDireWolf/pyxorfilter)
 
 ## Password Lookup Tool
