@@ -42,7 +42,7 @@ public class CuckooPlus8 implements Filter {
     public CuckooPlus8(int capacity) {
         // bucketCount needs to be even for bucket2 to work
         bucketCount = (int) Math.ceil((double) capacity) / 2 * 2;
-        this.data = new byte[bucketCount + 1];
+        this.data = new byte[bucketCount + 2];
         this.seed = Hash.randomSeed();
     }
 

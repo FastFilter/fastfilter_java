@@ -61,7 +61,7 @@ public class SuccinctCountingBlockedBloom implements Filter {
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;
         this.buckets = (int) bits / 64;
-        int arrayLength = (int) (buckets + 16);
+        int arrayLength = buckets + 16 + 1;
         data = new long[arrayLength];
         counts = new long[arrayLength];
         overflow = new long[100 + arrayLength * 10 / 100];

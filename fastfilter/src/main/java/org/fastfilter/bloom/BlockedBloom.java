@@ -12,8 +12,8 @@ import org.fastfilter.utils.Hash;
 public class BlockedBloom implements Filter {
 
     public static BlockedBloom construct(long[] keys, int bitsPerKey) {
-        long n = keys.length;
-        BlockedBloom f = new BlockedBloom((int) n, bitsPerKey);
+        int n = keys.length;
+        BlockedBloom f = new BlockedBloom(n, bitsPerKey);
         for(long x : keys) {
             f.add(x);
         }
@@ -34,7 +34,7 @@ public class BlockedBloom implements Filter {
         this.seed = Hash.randomSeed();
         long bits = (long) entryCount * bitsPerKey;
         this.buckets = (int) bits / 64;
-        data = new long[(int) (buckets + 16)];
+        data = new long[buckets + 16 + 1];
     }
 
     @Override
