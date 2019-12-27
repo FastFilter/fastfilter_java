@@ -36,7 +36,11 @@ public class CountingBloom implements Filter {
         entryCount = Math.max(1, entryCount);
         this.k = k;
         this.seed = Hash.randomSeed();
-        this.bits = (long) (4 * entryCount * bitsPerKey);
+        // if the entryCount is very small, then there is a relatively high
+        // probability that one of the counter overflows, so we add
+        // a fixed number of bits (64 in this case) to reduce the probability of this
+        // (this is a workaround only)
+        this.bits = (long) (4 * entryCount * bitsPerKey) + 64;
         arraySize = (int) ((bits + 63) / 64);
         counts = new long[arraySize];
     }
@@ -53,6 +57,11 @@ public class CountingBloom implements Filter {
         int b = (int) hash;
         for (int i = 0; i < k; i++) {
             int index = Hash.reduce(a, arraySize << 4);
+            int oldCount = (int) (counts[index >>> 4] >>> (index << 2)) & 0xf;            
+            if (oldCount >= 15) {
+                // TODO we should also undo what was added so far
+                throw new UnsupportedOperationException("Counter overflow");
+            }
             counts[index >>> 4] += getBit(index);
             a += b;
         }

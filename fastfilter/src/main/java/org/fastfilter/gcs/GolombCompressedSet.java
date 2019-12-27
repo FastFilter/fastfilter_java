@@ -26,6 +26,9 @@ public class GolombCompressedSet implements Filter {
         return new GolombCompressedSet(keys, keys.length, setting);
     }
 
+    // TODO rearrange Rice codes so that buckets have all variable parts first, then fixed part
+    // this is to speed up lookup with large bucket sizes
+
     GolombCompressedSet(long[] keys, int len, int fingerprintBits) {
         if (fingerprintBits < 4 || fingerprintBits > 50) {
             throw new IllegalArgumentException();
