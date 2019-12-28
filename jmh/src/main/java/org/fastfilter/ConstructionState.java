@@ -27,9 +27,7 @@ public class ConstructionState {
             "CUCKOO_16",
             "CUCKOO_PLUS_8",
             "CUCKOO_PLUS_16",
-            "GCS",
-            "GCS2",
-            "MPHF"})
+            "GCS"})
     FilterType type;
 
     long[] keys;
