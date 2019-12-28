@@ -1,10 +1,7 @@
 package org.fastfilter.gcs;
 
-import java.util.Random;
-
 import org.fastfilter.gcs.BitBuffer;
 import org.fastfilter.utils.RandomGenerator;
-import org.junit.Test;
 
 public class BitArrayTest {
 

@@ -35,17 +35,66 @@ public class BitBuffer {
         this.pos = pos;
     }
 
-    public void clear() {
-        Arrays.fill(data, 0);
+    public long readBit() {
+        return (data[pos >>> 6] >>> (63 - (pos++ & 63))) & 1;
     }
 
-    public void skipGolombRice(int shift) {
-        pos = skipGolombRice(pos, shift);
+    public void writeBit(long x) {
+        if (x == 1) {
+            data[pos >>> 6] |= 1L << (63 - (pos & 63));
+        }
+        pos++;
     }
 
-    public int skipGolombRice(int pos, int shift) {
-        int q = readUntilZero(pos);
-        return pos + q + 1 + shift;
+    public void writeGolombRice(int shift, long value) {
+        writeGolombRiceFast(shift, value);
+    }
+
+    public void writeGolombRiceFast(int shift, long value) {
+        long q = value >>> shift;
+        if (q < 63) {
+            long m = (2L << q) - 2;
+            writeNumber(m, (int) (q + 1));
+        } else {
+            for (int i = 0; i < q; i++) {
+                writeBit(1);
+            }
+            writeBit(0);
+        }
+        writeNumber(value & ((1L << shift) - 1), shift);
+    }
+
+    public void writeEliasDelta(long value) {
+        if (value <= 0) {
+            throw new IllegalArgumentException();
+        }
+        int q = 64 - Long.numberOfLeadingZeros(value);
+        int qq = 31 - Integer.numberOfLeadingZeros(q);
+        for (int i = 0; i < qq; i++) {
+            writeBit(0);
+        }
+        for (int i = qq; i >= 0; i--) {
+            writeBit((q >>> i) & 1);
+        }
+        for (int i = q - 2; i >= 0; i--) {
+            writeBit((value >>> i) & 1);
+        }
+    }
+
+    public long readEliasDelta() {
+        int qq = 0;
+        while (readBit() == 0) {
+            qq++;
+        }
+        long q = 1;
+        for (int i = qq; i > 0; i--) {
+            q = (q << 1) | readBit();
+        }
+        long x = 1;
+        for (long i = q - 2; i >= 0; i--) {
+            x = (x << 1) | readBit();
+        }
+        return x;
     }
 
     /**
@@ -105,17 +154,6 @@ public class BitBuffer {
         return ((x & 1) == 1) ? (x + 1) / 2 : -(x / 2);
     }
 
-    public void writeBit(long x) {
-        if (x == 1) {
-            data[pos >>> 6] |= 1L << (63 - (pos & 63));
-        }
-        pos++;
-    }
-
-    public long readBit() {
-        return (data[pos >>> 6] >>> (63 - (pos++ & 63))) & 1;
-    }
-
     public int readUntilZero(int pos) {
         int remainingBits = 64 - (pos & 63);
         int index = pos >>> 6;
@@ -138,57 +176,6 @@ public class BitBuffer {
         }
     }
 
-    public void writeGolombRice(int shift, long value) {
-        writeGolombRiceFast(shift, value);
-    }
-
-    public void writeGolombRiceFast(int shift, long value) {
-        long q = value >>> shift;
-        if (q < 63) {
-            long m = (2L << q) - 2;
-            writeNumber(m, (int) (q + 1));
-        } else {
-            for (int i = 0; i < q; i++) {
-                writeBit(1);
-            }
-            writeBit(0);
-        }
-        writeNumber(value & ((1L << shift) - 1), shift);
-    }
-
-    public void writeEliasDelta(long value) {
-        if (value <= 0) {
-            throw new IllegalArgumentException();
-        }
-        int q = 64 - Long.numberOfLeadingZeros(value);
-        int qq = 31 - Integer.numberOfLeadingZeros(q);
-        for (int i = 0; i < qq; i++) {
-            writeBit(0);
-        }
-        for (int i = qq; i >= 0; i--) {
-            writeBit((q >>> i) & 1);
-        }
-        for (int i = q - 2; i >= 0; i--) {
-            writeBit((value >>> i) & 1);
-        }
-    }
-
-    public long readEliasDelta() {
-        int qq = 0;
-        while (readBit() == 0) {
-            qq++;
-        }
-        long q = 1;
-        for (int i = qq; i > 0; i--) {
-            q = (q << 1) | readBit();
-        }
-        long x = 1;
-        for (long i = q - 2; i >= 0; i--) {
-            x = (x << 1) | readBit();
-        }
-        return x;
-    }
-
     /**
      * Write a number of bits. The most significant bit is written first.
      *
@@ -208,6 +195,19 @@ public class BitBuffer {
             data[index + 1] |= x << (64 - bitCount + remainingBits);
         }
         pos += bitCount;
+    }
+
+    public void skipGolombRice(int shift) {
+        pos = skipGolombRice(pos, shift);
+    }
+
+    public int skipGolombRice(int pos, int shift) {
+        int q = readUntilZero(pos);
+        return pos + q + 1 + shift;
+    }
+
+    public void clear() {
+        Arrays.fill(data, 0);
     }
 
     public static int getEliasDeltaSize(long value) {
