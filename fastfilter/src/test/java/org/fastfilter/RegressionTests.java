@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.fastfilter.FilterType.*;
+import static org.fastfilter.TestFilterType.*;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
@@ -57,12 +57,12 @@ public class RegressionTests {
         };
     }
 
-    private final FilterType type;
+    private final TestFilterType type;
     private final long seed;
     private final long[] keys;
     private final int bitsPerKey;
 
-    public RegressionTests(FilterType type, long seed, long[] keys, int bitsPerKey) {
+    public RegressionTests(TestFilterType type, long seed, long[] keys, int bitsPerKey) {
         this.type = type;
         this.seed = seed;
         this.keys = keys;

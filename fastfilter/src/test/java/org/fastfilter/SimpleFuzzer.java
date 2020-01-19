@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.LongStream;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.fastfilter.FilterType.*;
+import static org.fastfilter.TestFilterType.*;
 
 public class SimpleFuzzer {
 
@@ -17,7 +17,7 @@ public class SimpleFuzzer {
         for (int bitsPerKey = 8; bitsPerKey < 32; bitsPerKey += 8) {
             for (int keyLength = 3; keyLength < 1_000_000; keyLength += ThreadLocalRandom.current().nextInt(10000)) {
                 long[] keys = LongStream.range(0, keyLength).map(i -> ThreadLocalRandom.current().nextLong()).toArray();
-                for (FilterType type : FilterType.values()) {
+                for (TestFilterType type : TestFilterType.values()) {
                     try {
                         for (int i = 0; i < 1_000_000; ++i) {
                             seed = ThreadLocalRandom.current().nextLong();
