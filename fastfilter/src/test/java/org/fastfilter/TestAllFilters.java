@@ -3,7 +3,7 @@ package org.fastfilter;
 import static org.junit.Assert.assertEquals;
 
 import org.fastfilter.Filter;
-import org.fastfilter.FilterType;
+import org.fastfilter.TestFilterType;
 import org.fastfilter.utils.Hash;
 import org.fastfilter.utils.RandomGenerator;
 import org.junit.Test;
@@ -90,11 +90,11 @@ public class TestAllFilters {
         for (int size = 1_000_000; size <= 10_000_000; size *= 10) {
             System.out.println("size " + size);
             for (int test = 0; test < 10; test++) {
-                test(FilterType.BLOOM, size, test, true);
-                test(FilterType.BLOCKED_BLOOM, size, test, true);
-                test(FilterType.COUNTING_BLOOM, size, test, true);
-                test(FilterType.SUCCINCT_COUNTING_BLOOM, size, test, true);
-                test(FilterType.SUCCINCT_COUNTING_BLOOM_RANKED, size, test, true);
+                test(TestFilterType.BLOOM, size, test, true);
+                test(TestFilterType.BLOCKED_BLOOM, size, test, true);
+                test(TestFilterType.COUNTING_BLOOM, size, test, true);
+                test(TestFilterType.SUCCINCT_COUNTING_BLOOM, size, test, true);
+                test(TestFilterType.SUCCINCT_COUNTING_BLOOM_RANKED, size, test, true);
             }
         }
 
@@ -118,12 +118,12 @@ public class TestAllFilters {
     }
 
     private static void testAll(int len, boolean log) {
-        for (FilterType type : FilterType.values()) {
+        for (TestFilterType type : TestFilterType.values()) {
             test(type, len, 0, log);
         }
     }
 
-    private static void test(FilterType type, int len, int seed, boolean log) {
+    private static void test(TestFilterType type, int len, int seed, boolean log) {
         long[] list = new long[len * 2];
         RandomGenerator.createRandomUniqueListFast(list, len + seed);
         long[] keys = new long[len];

@@ -19,7 +19,7 @@ import org.fastfilter.xorplus.XorPlus8;
 /**
  * The list of supported approximate membership implementations.
  */
-public enum FilterType {
+public enum TestFilterType {
     BLOOM {
         @Override
         public Filter construct(long[] keys, int setting) {
