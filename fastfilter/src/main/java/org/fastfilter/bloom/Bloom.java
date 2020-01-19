@@ -50,10 +50,10 @@ public class Bloom implements Filter {
     @Override
     public void add(long key) {
         long hash = Hash.hash64(key, seed);
-        int a = (int) (hash >>> 32);
-        int b = (int) hash;
+        long a = (hash >>> 32) | (hash << 32);
+        long b = hash;
         for (int i = 0; i < k; i++) {
-            data[Hash.reduce(a, arraySize)] |= 1L << a;
+            data[Hash.reduce((int) (a >>> 32), arraySize)] |= 1L << a;
             a += b;
         }
     }
@@ -61,10 +61,10 @@ public class Bloom implements Filter {
     @Override
     public boolean mayContain(long key) {
         long hash = Hash.hash64(key, seed);
-        int a = (int) (hash >>> 32);
-        int b = (int) hash;
+        long a = (hash >>> 32) | (hash << 32);
+        long b = hash;
         for (int i = 0; i < k; i++) {
-            if ((data[Hash.reduce(a, arraySize)] & 1L << a) == 0) {
+            if ((data[Hash.reduce((int) (a >>> 32), arraySize)] & 1L << a) == 0) {
                 return false;
             }
             a += b;
