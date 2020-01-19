@@ -13,12 +13,16 @@ public class ProbabilityFuse {
     private static final int FUSE_SLOTS = FUSE_SEGMENT_COUNT + FUSE_ARITY - 1;
 
     public static void main(String... args) {
-        for(int size = 100; size < 200000; size *= 1.1) {
+        for(int size = 10; size < 500000; size *= 1.1) {
             System.out.print("size " + size);
             double start = Math.max(0.1, Math.min(0.8, Math.log10(size / 100) /4));
-            for(double factor = start + 0.1; factor > 0.0; factor -= 0.01) {
+            double change = 0.1;
+            int lastDirection = 1;
+            double p = 0;
+            double factor = start + 0.1;
+            for(; factor > 0.0;) {
                 int successCount = 0;
-                int testCount = 100;
+                int testCount = Math.max(10, 1000000 / size);
                 for(int seed = 0; seed < testCount; seed++) { 
                     long[] keys = new long[size];
                     RandomGenerator.createRandomUniqueListFast(keys, seed);
@@ -27,14 +31,50 @@ public class ProbabilityFuse {
                         successCount++;
                     }
                 }
-                double p = 1.0 * successCount / testCount;
-                if (p > 0.9 || factor < 0.15) {
-                    System.out.printf(Locale.ENGLISH, " %2.2f %2.2f", factor, start);
+                p = 1.0 * successCount / testCount;
+                if (p < 0.6 && factor > 0.1) {
+                    factor -= change;
+                    if (lastDirection != -1) {
+                        lastDirection = -1;
+                        change = change / 2;
+                    }
+                } else if (p > 0.61) {
+                    if (change < 0.0001) {
+                        break;
+                    }
+                    if (factor > 0.8) {
+                        break;
+                    }
+                    factor += change;
+                    if (lastDirection != 1) {
+                        lastDirection = 1;
+                        change = change / 2;
+                    }
+                } else {
                     break;
                 }
+                // System.out.printf(Locale.ENGLISH, " %2.5f %2.3f %2.20f\n", factor, p, change);
             }
-            System.out.println();
+            System.out.printf(Locale.ENGLISH, " %2.5f %2.3f\n", factor, p);
         }
+    }
+
+    /**
+     * Get the fill rate for a certain size for a 95% probability.
+     *
+     * @param size the size
+     * @return the factor
+     */
+    public static double getFactor(int size) {
+        if (size < 100) {
+            return 0.13;
+        }
+        if (size > 170000) {
+            return 0.879;
+        }
+        // this formula is weird, using cosine and log base 10, but it works.
+        // it was found manually trying to fit the curve
+        return Math.cos(Math.log10(size) / 1.2 - 4.7) / 2.7 + 0.5;
     }
     
     public static boolean testMapping(long[] keys, double factor, long seed) {
