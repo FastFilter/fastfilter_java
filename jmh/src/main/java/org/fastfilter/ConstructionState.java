@@ -28,7 +28,7 @@ public class ConstructionState {
             "CUCKOO_PLUS_8",
             "CUCKOO_PLUS_16",
             "GCS"})
-    TestFilterType type;
+    FilterType type;
 
     long[] keys;
 
@@ -36,7 +36,7 @@ public class ConstructionState {
         return keys;
     }
 
-    public TestFilterType getConstructor() {
+    public FilterType getConstructor() {
         return type;
     }
 
