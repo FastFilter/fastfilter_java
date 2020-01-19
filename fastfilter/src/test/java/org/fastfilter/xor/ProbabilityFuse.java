@@ -32,13 +32,14 @@ public class ProbabilityFuse {
                     }
                 }
                 p = 1.0 * successCount / testCount;
-                if (p < 0.6 && factor > 0.1) {
+                double minP = 0.01;
+                if (p < minP && factor > 0.1) {
                     factor -= change;
                     if (lastDirection != -1) {
                         lastDirection = -1;
                         change = change / 2;
                     }
-                } else if (p > 0.61) {
+                } else if (p > minP * 1.1) {
                     if (change < 0.0001) {
                         break;
                     }
