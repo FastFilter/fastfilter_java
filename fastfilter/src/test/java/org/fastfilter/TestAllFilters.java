@@ -87,6 +87,7 @@ public class TestAllFilters {
 
     public static void main(String... args) {
         Hash.setSeed(1);
+        /*
         for (int size = 1_000_000; size <= 10_000_000; size *= 10) {
             System.out.println("size " + size);
             for (int test = 0; test < 10; test++) {
@@ -97,7 +98,15 @@ public class TestAllFilters {
                 test(TestFilterType.SUCCINCT_COUNTING_BLOOM_RANKED, size, test, true);
             }
         }
-
+        */
+        for (int size = 1; size <= 100; size++) {
+            System.out.println("size " + size);
+            test(TestFilterType.XOR_FUSE_8, size, 0, true);
+        }
+        for (int size = 100; size <= 100000; size *= 1.1) {
+            System.out.println("size " + size);
+            test(TestFilterType.XOR_FUSE_8, size, 0, true);
+        }
         for (int size = 1_000_000; size <= 8_000_000; size *= 2) {
             System.out.println("size " + size);
             testAll(size, true);
