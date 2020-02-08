@@ -18,15 +18,16 @@ The following filter types are currently implemented:
 
 Reference: [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters](https://arxiv.org/abs/1912.08258), Journal of Experimental Algorithmics (to appear).
 
-# Implements of xor filters in other programming languages
+# Other Xor Filter Implementations
 
-* [Erlang](https://github.com/mpope9/exor_filter)
-* Rust: [1](https://github.com/bnclabs/xorfilter), [2](https://github.com/codri/xorfilter-rs), [3](https://github.com/Polochon-street/rustxorfilter)
-* [C++](https://github.com/FastFilter/fastfilter_cpp)
-* [Go](https://github.com/FastFilter/xorfilter)
 * [C](https://github.com/FastFilter/xor_singleheader)
 * [C99](https://github.com/skeeto/xf8)
+* [C++](https://github.com/FastFilter/fastfilter_cpp)
+* [Erlang](https://github.com/mpope9/exor_filter)
+* [Go](https://github.com/FastFilter/xorfilter)
+* [Java](https://github.com/komiya-atsushi/xor-filter)
 * [Python](https://github.com/GreyDireWolf/pyxorfilter)
+* Rust: [1](https://github.com/bnclabs/xorfilter), [2](https://github.com/codri/xorfilter-rs), [3](https://github.com/Polochon-street/rustxorfilter)
 
 ## Password Lookup Tool
 
