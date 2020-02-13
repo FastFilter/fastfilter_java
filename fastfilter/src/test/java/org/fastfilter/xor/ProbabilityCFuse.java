@@ -10,17 +10,17 @@ import org.fastfilter.utils.RandomGenerator;
  * mapping, for the fuse filter. Specially interesting are "small" set sizes
  * between 100 and 1 million.
  *
- * See also "Dense Peelable Random Uniform Hypergraphs"
+ * See also "Peeling Close to the Orientability Threshold - Spatial Coupling in Hashing-Based Data Structures"
+
  */
-public class ProbabilityFuse {
+public class ProbabilityCFuse {
 
     private static final int HASHES = 3;
 
-//    size 10 load 0.40 segmentLength 8 bits/key 20.0 p 0.90
-//    size 100 load 0.60 segmentLength 32 bits/key 13.3 p 0.93
-//    size 1000 load 0.70 segmentLength 64 bits/key 11.4 p 0.89
-//    size 10000 load 0.80 segmentLength 256 bits/key 10.0 p 0.86
-//    size 100000 load 0.85 segmentLength 1024 bits/key 9.4 p 0.98
+//    size 100 load 0.45 segmentLength 64 bits/key 17.8 p 0.88
+//    size 1000 load 0.65 segmentLength 256 bits/key 12.3 p 0.92
+//    size 10000 load 0.75 segmentLength 1024 bits/key 10.7 p 0.94
+//    size 100000 load 0.80 segmentLength 4096 bits/key 10.0 p 0.92
 
     public static void main(String... args) {
         for(int size = 1; size < 1_000_000; size *= 10) {
@@ -53,7 +53,7 @@ public class ProbabilityFuse {
         if (arrayLength <= 0) {
             return null;
         }
-        int segmentCount = (arrayLength - 2 * segmentLength) / segmentLength;
+        int segmentCount = arrayLength - 1 * segmentLength;
         if (segmentCount <= 0) {
             return null;
         }
@@ -142,11 +142,11 @@ public class ProbabilityFuse {
 
     private static int getHash(int segmentLengthBits, int segmentLength, int segmentCount, long key, long seed, int index) {
         long hash = Hash.hash64(key, seed);
-        int seg = Hash.reduce((int) hash, segmentCount);
-        long hh = (hash ^ (hash >>> 32));
-        int h0 = (seg + 0) * segmentLength + (int) ((hh >> (0 * segmentLengthBits)) & (segmentLength - 1));
-        int h1 = (seg + 1) * segmentLength + (int) ((hh >> (1 * segmentLengthBits)) & (segmentLength - 1));
-        int h2 = (seg + 2) * segmentLength + (int) ((hh >> (2 * segmentLengthBits)) & (segmentLength - 1));
+        int r0 = (int) Hash.hash64(hash, 1);
+        int x = Hash.reduce(r0, segmentCount);
+        int h0 = x + (int) (Hash.hash64(hash, 2) & (segmentLength - 1));
+        int h1 = x + (int) (Hash.hash64(hash, 3) & (segmentLength - 1));
+        int h2 = x + (int) (Hash.hash64(hash, 4) & (segmentLength - 1));
         return index == 0 ? h0 : index == 1 ? h1 : h2;
     }
 
