@@ -16,7 +16,9 @@ The following filter types are currently implemented:
 * Xor filter: 8 and 16 bit variants; needs less space than cuckoo filters, with faster lookup
 * Xor+ filter: 8 and 16 bit variants; compressed xor filter
 
-Reference: [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters](https://arxiv.org/abs/1912.08258), Journal of Experimental Algorithmics (to appear).
+## Reference
+
+* Thomas Mueller Graf,  Daniel Lemire, [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters](https://arxiv.org/abs/1912.08258), Journal of Experimental Algorithmics 25 (1), 2020. DOI: 10.1145/3376122
 
 # Other Xor Filter Implementations
 
