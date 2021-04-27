@@ -13,7 +13,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.fastfilter</groupId>
+            <groupId>com.github.fastfilter</groupId>
             <artifactId>fastfilter</artifactId>
             <version>${project.version}</version>
         </dependency>
