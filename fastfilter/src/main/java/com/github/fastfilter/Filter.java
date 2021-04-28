@@ -59,6 +59,7 @@ public interface Filter {
     /**
      * Get the number of set bits. This should be 0 for an empty filter.
      *
+     * @return the number of bits
      */
     default long cardinality() {
         return -1;
