@@ -1,12 +1,13 @@
-package org.fastfilter.gcs;
+package com.github.fastfilter.gcs;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.Random;
 
-import org.fastfilter.gcs.BitBufferDirect;
-import org.fastfilter.gcs.MonotoneList2;
 import org.junit.Test;
+
+import com.github.fastfilter.gcs.BitBufferDirect;
+import com.github.fastfilter.gcs.MonotoneList2;
 
 /**
  * Test the MonotoneList2 implementations.

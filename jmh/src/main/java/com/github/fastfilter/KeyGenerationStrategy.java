@@ -1,4 +1,4 @@
-package org.fastfilter;
+package com.github.fastfilter;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -46,19 +46,19 @@ If you have enough disk space, you can extract the hash file (~25 GB),
 and convert it as follows:
 
     mvn clean install
-    cat hash.txt | java -cp target/fastfilter*.jar org.fastfilter.tools.BuildFilterFile filter.bin
+    cat hash.txt | java -cp target/fastfilter*.jar com.github.fastfilter.tools.BuildFilterFile filter.bin
 
 Converting takes about 2-3 minutes (depending on hardware).
 To save disk space, you can extract the file on the fly (Mac OS X using Keka):
 
     /Applications/Keka.app/Contents/Resources/keka7z e -so
-        pass.7z | java -cp target/fastfilter*.jar org.fastfilter.tools.BuildFilterFile filter.bin
+        pass.7z | java -cp target/fastfilter*.jar com.github.fastfilter.tools.BuildFilterFile filter.bin
 
 Both will generate a file named filter.bin (~630 MB).
 
 ### Check Passwords
 
-    java -cp target/fastfilter*.jar org.fastfilter.tools.PasswordLookup filter.bin
+    java -cp target/fastfilter*.jar com.github.fastfilter.tools.PasswordLookup filter.bin
 
 Enter a password to see if it's in the list.
 If yes, it will (for sure) either show "Found", or "Found; common",

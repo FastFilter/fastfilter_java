@@ -1,4 +1,4 @@
-package org.fastfilter;
+package com.github.fastfilter;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.OutputTimeUnit;

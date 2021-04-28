@@ -1,10 +1,10 @@
-package org.fastfilter.xorplus;
-
-import org.fastfilter.Filter;
-import org.fastfilter.utils.Hash;
+package com.github.fastfilter.xorplus;
 
 import java.io.*;
 import java.util.BitSet;
+
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.utils.Hash;
 
 /**
  * A slower implementation of the Xor filter, which uses slightly less space

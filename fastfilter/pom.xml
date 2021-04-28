@@ -54,10 +54,10 @@
                 <version>1.4.3</version>
                 <configuration>
                     <targetClasses>
-                        <param>org.fastfilter.gcs.Sort</param>
+                        <param>com.github.fastfilter.gcs.Sort</param>
                     </targetClasses>
                     <targetTests>
-                        <param>org.fastfilter.gcs.SortTest</param>
+                        <param>com.github.fastfilter.gcs.SortTest</param>
                     </targetTests>
                 </configuration>
             </plugin>

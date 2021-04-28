@@ -1,11 +1,12 @@
-package org.fastfilter.gcs;
+package com.github.fastfilter.gcs;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.Random;
 
-import org.fastfilter.gcs.BitBufferDirect;
 import org.junit.Test;
+
+import com.github.fastfilter.gcs.BitBufferDirect;
 
 public class BitBufferTest {
 

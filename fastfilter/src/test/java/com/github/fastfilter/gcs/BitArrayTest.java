@@ -1,7 +1,7 @@
-package org.fastfilter.gcs;
+package com.github.fastfilter.gcs;
 
-import org.fastfilter.gcs.BitBuffer;
-import org.fastfilter.utils.RandomGenerator;
+import com.github.fastfilter.gcs.BitBuffer;
+import com.github.fastfilter.utils.RandomGenerator;
 
 public class BitArrayTest {
 

@@ -1,4 +1,4 @@
-package org.fastfilter.analysis;
+package com.github.fastfilter.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;

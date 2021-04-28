@@ -1,11 +1,11 @@
-package org.fastfilter.tools;
-
-import org.fastfilter.utils.StringUtils;
-import org.fastfilter.xorplus.XorPlus8;
+package com.github.fastfilter.tools;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+
+import com.github.fastfilter.utils.StringUtils;
+import com.github.fastfilter.xorplus.XorPlus8;
 
 public class BuildFilterFile {
 

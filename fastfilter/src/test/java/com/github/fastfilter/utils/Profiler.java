@@ -1,4 +1,4 @@
-package org.fastfilter.utils;
+package com.github.fastfilter.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;

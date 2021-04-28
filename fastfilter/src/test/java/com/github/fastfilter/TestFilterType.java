@@ -1,21 +1,22 @@
-package org.fastfilter;
+package com.github.fastfilter;
 
-import org.fastfilter.bloom.BlockedBloom;
-import org.fastfilter.bloom.Bloom;
-import org.fastfilter.bloom.count.*;
-import org.fastfilter.cuckoo.Cuckoo16;
-import org.fastfilter.cuckoo.Cuckoo8;
-import org.fastfilter.cuckoo.CuckooPlus16;
-import org.fastfilter.cuckoo.CuckooPlus8;
-import org.fastfilter.gcs.GolombCompressedSet;
-import org.fastfilter.gcs.GolombCompressedSet2;
-import org.fastfilter.mphf.MPHFilter;
-import org.fastfilter.xor.Xor16;
-import org.fastfilter.xor.Xor8;
-import org.fastfilter.xor.XorFuse8;
-import org.fastfilter.xor.XorSimple;
-import org.fastfilter.xor.XorSimple2;
-import org.fastfilter.xorplus.XorPlus8;
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.bloom.BlockedBloom;
+import com.github.fastfilter.bloom.Bloom;
+import com.github.fastfilter.bloom.count.*;
+import com.github.fastfilter.cuckoo.Cuckoo16;
+import com.github.fastfilter.cuckoo.Cuckoo8;
+import com.github.fastfilter.cuckoo.CuckooPlus16;
+import com.github.fastfilter.cuckoo.CuckooPlus8;
+import com.github.fastfilter.gcs.GolombCompressedSet;
+import com.github.fastfilter.gcs.GolombCompressedSet2;
+import com.github.fastfilter.mphf.MPHFilter;
+import com.github.fastfilter.xor.Xor16;
+import com.github.fastfilter.xor.Xor8;
+import com.github.fastfilter.xor.XorFuse8;
+import com.github.fastfilter.xor.XorSimple;
+import com.github.fastfilter.xor.XorSimple2;
+import com.github.fastfilter.xorplus.XorPlus8;
 
 /**
  * The list of supported approximate membership implementations.

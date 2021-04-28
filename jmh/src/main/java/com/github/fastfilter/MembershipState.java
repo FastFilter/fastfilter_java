@@ -1,6 +1,8 @@
-package org.fastfilter;
+package com.github.fastfilter;
 
 import org.openjdk.jmh.annotations.*;
+
+import com.github.fastfilter.Filter;
 
 import java.util.HashSet;
 import java.util.Set;

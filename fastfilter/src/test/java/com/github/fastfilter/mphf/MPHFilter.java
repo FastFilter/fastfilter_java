@@ -1,7 +1,7 @@
-package org.fastfilter.mphf;
+package com.github.fastfilter.mphf;
 
-import org.fastfilter.Filter;
-import org.fastfilter.gcs.BitBuffer;
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.gcs.BitBuffer;
 
 public class MPHFilter implements Filter {
 

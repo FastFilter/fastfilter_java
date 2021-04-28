@@ -1,4 +1,4 @@
-package org.fastfilter.xorplus;
+package com.github.fastfilter.xorplus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -7,9 +7,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.BitSet;
 import java.util.Random;
 
-import org.fastfilter.utils.Hash;
-import org.fastfilter.xorplus.Rank9;
 import org.junit.Test;
+
+import com.github.fastfilter.utils.Hash;
+import com.github.fastfilter.xorplus.Rank9;
 
 /**
  * Test the simple rank/select implementation.

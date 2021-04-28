@@ -1,4 +1,4 @@
-package org.fastfilter.gcs;
+package com.github.fastfilter.gcs;
 
 import java.util.Arrays;
 

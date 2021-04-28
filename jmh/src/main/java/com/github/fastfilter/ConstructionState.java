@@ -1,6 +1,8 @@
-package org.fastfilter;
+package com.github.fastfilter;
 
 import org.openjdk.jmh.annotations.*;
+
+import com.github.fastfilter.FilterType;
 
 @State(Scope.Benchmark)
 public class ConstructionState {

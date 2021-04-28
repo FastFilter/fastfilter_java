@@ -1,9 +1,9 @@
-package org.fastfilter.cuckoo;
-
-import org.fastfilter.Filter;
-import org.fastfilter.utils.Hash;
+package com.github.fastfilter.cuckoo;
 
 import java.util.Random;
+
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.utils.Hash;
 
 /**
  * This is a Cuckoo Filter implementation.

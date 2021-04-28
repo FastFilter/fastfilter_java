@@ -1,9 +1,9 @@
-package org.fastfilter.xor;
-
-import org.fastfilter.Filter;
-import org.fastfilter.utils.Hash;
+package com.github.fastfilter.xor;
 
 import java.io.*;
+
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.utils.Hash;
 
 /**
  * The Xor Filter, a new algorithm that can replace a Bloom filter.

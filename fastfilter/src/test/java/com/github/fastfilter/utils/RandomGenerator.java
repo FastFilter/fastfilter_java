@@ -1,12 +1,12 @@
-package org.fastfilter.utils;
+package com.github.fastfilter.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 
-import org.fastfilter.gcs.Sort;
-import org.fastfilter.utils.Hash;
+import com.github.fastfilter.gcs.Sort;
+import com.github.fastfilter.utils.Hash;
 
 public class RandomGenerator {
 
