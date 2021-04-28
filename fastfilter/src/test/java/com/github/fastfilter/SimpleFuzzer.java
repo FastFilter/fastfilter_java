@@ -1,14 +1,15 @@
-package org.fastfilter;
-
-import org.fastfilter.utils.Hash;
+package com.github.fastfilter;
 
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.LongStream;
 
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.utils.Hash;
+
+import static com.github.fastfilter.TestFilterType.*;
 import static junit.framework.TestCase.assertTrue;
-import static org.fastfilter.TestFilterType.*;
 
 public class SimpleFuzzer {
 

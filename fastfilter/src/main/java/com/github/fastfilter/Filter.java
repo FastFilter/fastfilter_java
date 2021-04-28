@@ -1,4 +1,4 @@
-package org.fastfilter;
+package com.github.fastfilter;
 
 /**
  * An approximate membership filter.

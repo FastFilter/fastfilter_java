@@ -1,7 +1,7 @@
-package org.fastfilter.bloom;
+package com.github.fastfilter.bloom;
 
-import org.fastfilter.Filter;
-import org.fastfilter.utils.Hash;
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.utils.Hash;
 
 /**
  * A standard Bloom filter.

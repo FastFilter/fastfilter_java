@@ -1,4 +1,4 @@
-package org.fastfilter.gcs;
+package com.github.fastfilter.gcs;
 
 /**
  * This implementation uses a linear regression, and 3 levels of offsets. It is

@@ -1,7 +1,7 @@
-package org.fastfilter.mphf;
+package com.github.fastfilter.mphf;
 
-import org.fastfilter.gcs.BitBuffer;
-import org.fastfilter.gcs.MonotoneList;
+import com.github.fastfilter.gcs.BitBuffer;
+import com.github.fastfilter.gcs.MonotoneList;
 
 public class FastEvaluator {
 

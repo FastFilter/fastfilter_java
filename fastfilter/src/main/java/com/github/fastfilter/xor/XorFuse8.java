@@ -1,7 +1,7 @@
-package org.fastfilter.xor;
+package com.github.fastfilter.xor;
 
-import org.fastfilter.Filter;
-import org.fastfilter.utils.Hash;
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.utils.Hash;
 
 /**
  * The Xor Fuse Filter, a new algorithm that can replace a bloom filter.

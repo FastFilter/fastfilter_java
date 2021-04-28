@@ -1,7 +1,7 @@
-package org.fastfilter.gcs;
+package com.github.fastfilter.gcs;
 
-import org.fastfilter.Filter;
-import org.fastfilter.utils.Hash;
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.utils.Hash;
 
 /**
  * Sometimes called "Golomb Coded Sets". This implementation uses Golomb-Rice

@@ -1,9 +1,9 @@
-package org.fastfilter.mphf;
-
-import org.fastfilter.gcs.BitBuffer;
-import org.fastfilter.gcs.MonotoneList;
+package com.github.fastfilter.mphf;
 
 import java.util.Arrays;
+
+import com.github.fastfilter.gcs.BitBuffer;
+import com.github.fastfilter.gcs.MonotoneList;
 
 public class FastGenerator {
 

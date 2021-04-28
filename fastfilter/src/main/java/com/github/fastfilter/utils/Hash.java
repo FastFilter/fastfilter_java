@@ -1,4 +1,4 @@
-package org.fastfilter.utils;
+package com.github.fastfilter.utils;
 
 import java.util.Random;
 

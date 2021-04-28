@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-package org.fastfilter.bloom.count;
+package com.github.fastfilter.bloom.count;
 
 /**
  * A select implementation with guaranteed O(1) query time. This is a copy of

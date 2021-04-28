@@ -1,4 +1,6 @@
-package org.fastfilter.gcs;
+package com.github.fastfilter.gcs;
+
+import com.github.fastfilter.gcs.BitBuffer;
 
 /**
  * This implementation uses a linear regression, and 3 levels of offsets. It is

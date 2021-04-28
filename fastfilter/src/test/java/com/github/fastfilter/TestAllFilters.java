@@ -1,12 +1,13 @@
-package org.fastfilter;
+package com.github.fastfilter;
 
 import static org.junit.Assert.assertEquals;
 
-import org.fastfilter.Filter;
-import org.fastfilter.TestFilterType;
-import org.fastfilter.utils.Hash;
-import org.fastfilter.utils.RandomGenerator;
 import org.junit.Test;
+
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.TestFilterType;
+import com.github.fastfilter.utils.Hash;
+import com.github.fastfilter.utils.RandomGenerator;
 
 /*
 

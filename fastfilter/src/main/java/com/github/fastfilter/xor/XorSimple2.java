@@ -1,6 +1,6 @@
-package org.fastfilter.xor;
+package com.github.fastfilter.xor;
 
-import org.fastfilter.utils.Hash;
+import com.github.fastfilter.utils.Hash;
 
 /**
  * The same as xor simple, but with the alternative construction that ensures

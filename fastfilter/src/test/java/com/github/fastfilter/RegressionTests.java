@@ -1,11 +1,13 @@
-package org.fastfilter;
+package com.github.fastfilter;
 
-import org.fastfilter.utils.Hash;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.fastfilter.TestFilterType.*;
+import com.github.fastfilter.Filter;
+import com.github.fastfilter.utils.Hash;
+
+import static com.github.fastfilter.TestFilterType.*;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)

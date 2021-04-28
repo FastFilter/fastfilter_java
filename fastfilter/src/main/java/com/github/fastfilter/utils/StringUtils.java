@@ -1,4 +1,4 @@
-package org.fastfilter.utils;
+package com.github.fastfilter.utils;
 
 public class StringUtils {
     private static final int[] HEX_DECODE = new int['f' + 1];

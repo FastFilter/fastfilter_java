@@ -1,9 +1,9 @@
-package org.fastfilter.xor;
+package com.github.fastfilter.xor;
 
 import java.util.Locale;
 
-import org.fastfilter.utils.Hash;
-import org.fastfilter.utils.RandomGenerator;
+import com.github.fastfilter.utils.Hash;
+import com.github.fastfilter.utils.RandomGenerator;
 
 /**
  * Calculate the best segment length for various sizes, and the probability of

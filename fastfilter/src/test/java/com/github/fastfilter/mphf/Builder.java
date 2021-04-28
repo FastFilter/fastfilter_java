@@ -1,6 +1,6 @@
-package org.fastfilter.mphf;
+package com.github.fastfilter.mphf;
 
-import org.fastfilter.gcs.BitBuffer;
+import com.github.fastfilter.gcs.BitBuffer;
 
 public class Builder {
 
