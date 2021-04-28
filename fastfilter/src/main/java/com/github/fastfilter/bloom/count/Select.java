@@ -142,7 +142,7 @@ public class Select {
 
     /**
      * Get the position of the n-th bit. Position 0 is the first bit (e.g. x = 1).
-     * Undefined if n >= number of bits in x.
+     * Undefined if n is larger or equal the number of bits in x.
      *
      * @param x the value
      * @param n the bit
