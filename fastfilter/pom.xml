@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>com.github.fastfilter</groupId>
+        <groupId>io.github.fastfilter</groupId>
         <artifactId>fastfilter_java</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
@@ -83,10 +83,10 @@
                 <version>1.4.3</version>
                 <configuration>
                     <targetClasses>
-                        <param>com.github.fastfilter.gcs.Sort</param>
+                        <param>org.fastfilter.gcs.Sort</param>
                     </targetClasses>
                     <targetTests>
-                        <param>com.github.fastfilter.gcs.SortTest</param>
+                        <param>org.fastfilter.gcs.SortTest</param>
                     </targetTests>
                 </configuration>
             </plugin>
