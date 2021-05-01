@@ -6,22 +6,22 @@ import java.util.Map;
 
 public class AnalyzeXorConstructionCacheMisses {
     public static void main(String... args) throws Exception {
-        int size = 1000000;
+        int size = 10000000;
         long[] keys = new long[size];
         for (int i = 0; i < size; i++) {
             keys[i] = hash64(i, 0);
         }
-        for (Class<? extends Xor> c : Arrays.asList(Xor.class, Fuse.class)) {
+        for (Class<? extends Xor> c : Arrays.asList(Fuse6.class, Fuse5.class, Fuse4.class, Fuse3.class, Fuse2.class, Fuse.class, Xor.class)) {
             Xor filter = c.getConstructor(int.class).newInstance(size);
             CacheAccessCallback cache;
             cache = new CacheAccessCallback();
-            filter.access = cache;
+            // filter.access = cache;
             filter.construct1(keys);
-            System.out.println(filter + " constuct1 cache misses: " + cache.cacheMisses);
+            // System.out.println(filter + " construct1 cache misses: " + cache.cacheMisses);
             cache = new CacheAccessCallback();
             filter.access = cache;
             filter.construct2();
-            System.out.println(filter + " constuct2 cache misses: " + cache.cacheMisses);
+            System.out.println(filter + " construct2 cache misses: " + cache.cacheMisses);
         }
     }
 
@@ -164,9 +164,13 @@ public class AnalyzeXorConstructionCacheMisses {
         int segmentCount;
 
         public Fuse(int size) {
+            // segment size for about 0.4 to 1.2 million keys
+            this(size, 4 * 1024);
+        }
+
+        public Fuse(int size, int segmentLength) {
             this.size = size;
-            // TODO hardcoded, for about 0.4 to 1.2 million keys
-            this.segmentLength = 4096;
+            this.segmentLength = segmentLength;
             int length = (int) (1.13 * size + segmentLength) / segmentLength * segmentLength;
             this.segmentCount = Math.max(1, length / segmentLength - 2);
             length = (segmentCount + 2) * segmentLength;
@@ -175,15 +179,47 @@ public class AnalyzeXorConstructionCacheMisses {
         }
 
         public String toString() {
-            return "Fuse";
+            return "Fuse size " + size + " segmentCount " + segmentCount + " segmentLength " + segmentLength;
         }
 
         protected int[] indexes(long hash) {
             int seg = reduce((int) hash64(hash, 0), segmentCount);
-            int h0 = (seg + 0) * segmentLength + (int) (hash64(hash, 1) & (segmentLength - 1));
-            int h1 = (seg + 1) * segmentLength + (int) (hash64(hash, 2) & (segmentLength - 1));
-            int h2 = (seg + 2) * segmentLength + (int) (hash64(hash, 3) & (segmentLength - 1));
+            int h0 = (seg + 0) * segmentLength + (int) Math.floorMod(hash64(hash, 1), segmentLength);
+            int h1 = (seg + 1) * segmentLength + (int) Math.floorMod(hash64(hash, 2), segmentLength);
+            int h2 = (seg + 2) * segmentLength + (int) Math.floorMod(hash64(hash, 3), segmentLength);
             return new int[] { h0, h1, h2 };
         }
     }
+
+    static class Fuse2 extends Fuse {
+        public Fuse2(int size) {
+            super(size, 8 * 1024);
+        }
+    }
+
+    static class Fuse3 extends Fuse {
+        public Fuse3(int size) {
+            super(size, 16 * 1024);
+        }
+    }
+
+    static class Fuse4 extends Fuse {
+        public Fuse4(int size) {
+            super(size, (int)(size * 1.13) / 320);
+        }
+    }
+
+    static class Fuse5 extends Fuse {
+        public Fuse5(int size) {
+            super(size, (int)(size * 1.13) / 240);
+        }
+    }
+
+    static class Fuse6 extends Fuse {
+        public Fuse6(int size) {
+            super(size, (int)(size * 1.13) / 160);
+        }
+    }
+
+
 }
