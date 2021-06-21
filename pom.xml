@@ -7,7 +7,7 @@
     <groupId>io.github.fastfilter</groupId>
     <artifactId>fastfilter_java</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <modules>
         <module>fastfilter</module>
         <module>jmh</module>
