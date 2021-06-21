@@ -20,6 +20,16 @@ The following filter types are currently implemented:
 
 * Thomas Mueller Graf,  Daniel Lemire, [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters](https://arxiv.org/abs/1912.08258), Journal of Experimental Algorithmics 25 (1), 2020. DOI: 10.1145/3376122
 
+## Usage
+
+When using Maven:
+
+    <dependency>
+      <groupId>io.github.fastfilter</groupId>
+      <artifactId>fastfilter</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+
 # Other Xor Filter Implementations
 
 * [C](https://github.com/FastFilter/xor_singleheader)
