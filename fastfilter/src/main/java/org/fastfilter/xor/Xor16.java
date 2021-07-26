@@ -4,7 +4,7 @@ import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
 /**
- * The Xor Filter, a new algorithm that can replace a Bloom filter.
+ * The xor filter, a new algorithm that can replace a Bloom filter.
  *
  * It needs 1.23 log(1/fpp) bits per key. It is related to the BDZ algorithm [1]
  * (a minimal perfect hash function algorithm).
