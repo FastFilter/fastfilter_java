@@ -13,7 +13,7 @@ import org.fastfilter.gcs.GolombCompressedSet2;
 import org.fastfilter.mphf.MPHFilter;
 import org.fastfilter.xor.Xor16;
 import org.fastfilter.xor.Xor8;
-import org.fastfilter.xor.XorFuse8;
+import org.fastfilter.xor.XorBinaryFuse8;
 import org.fastfilter.xor.XorSimple;
 import org.fastfilter.xor.XorSimple2;
 import org.fastfilter.xorplus.XorPlus8;
@@ -94,10 +94,10 @@ public enum TestFilterType {
             return XorPlus8.construct(keys);
         }
     },
-    XOR_FUSE_8 {
+    XOR_BINARY_FUSE_8 {
         @Override
         public Filter construct(long[] keys, int setting) {
-            return XorFuse8.construct(keys);
+            return XorBinaryFuse8.construct(keys);
         }
     },
     CUCKOO_8 {

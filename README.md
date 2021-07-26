@@ -4,17 +4,21 @@
 
 The following filter types are currently implemented:
 
+* Xor filter: 8 and 16 bit variants; needs less space than cuckoo filters, with faster lookup
+* Xor+ filter: 8 and 16 bit variants; compressed xor filter
+* Xor binary fuse filter: 8 bit variant; needs less space than xor filters, with faster lookup
+* Cuckoo filter: 8 and 16 bit variants; uses cuckoo hashing to store fingerprints
+* Cuckoo+ filter: 8 and 16 bit variants, need a bit less space than regular cuckoo filters
 * Bloom filter: the 'standard' algorithm
 * Blocked Bloom filter: faster than regular Bloom filters, but need a bit more space
 * Counting Bloom filter: allow removing entries, but need 4 times more space
 * Succinct counting Bloom filter: about half the space of regular counting Bloom filters; faster lookup but slower add / remove
 * Succinct counting blocked Bloom filter: same lookup speed as blocked Bloom filter
-* Cuckoo filter: 8 and 16 bit variants; uses cuckoo hashing to store fingerprints
-* Cuckoo+ filter: 8 and 16 bit variants, need a bit less space than regular cuckoo filters
+
+The following additional types are implemented, but less tested:
+
 * Golomb Compressed Set (GCS): needs less space than cuckoo filters, but lookup is slow
 * Minimal Perfect Hash filter: needs less space than cuckoo filters, but lookup is slow
-* Xor filter: 8 and 16 bit variants; needs less space than cuckoo filters, with faster lookup
-* Xor+ filter: 8 and 16 bit variants; compressed xor filter
 
 ## Reference
 
