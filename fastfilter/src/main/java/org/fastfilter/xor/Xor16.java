@@ -16,6 +16,7 @@ public class Xor16 implements Filter {
 
     private static final int BITS_PER_FINGERPRINT = 16;
     private static final int HASHES = 3;
+    private static final int OFFSET = 32;
     private static final int FACTOR_TIMES_100 = 123;
     private final int blockLength;
     private long seed;
@@ -27,7 +28,7 @@ public class Xor16 implements Filter {
     }
 
     private static int getArrayLength(int size) {
-        return (int) (HASHES + (long) FACTOR_TIMES_100 * size / 100);
+        return (int) (OFFSET + (long) FACTOR_TIMES_100 * size / 100);
     }
 
     public static Xor16 construct(long[] keys) {
