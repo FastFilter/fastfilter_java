@@ -27,6 +27,8 @@ public class XorPlus8 implements Filter {
 
     private static final int HASHES = 3;
 
+    private static final int OFFSET = 32;
+
     // the table needs to be 1.23 times the number of keys to store
     // with 2 hashes, we would need 232 (factor 2.32) for a 50% chance,
     // 240 for 55%, 250 for a 60%, 264 for 65%, 282 for 67%, as for
@@ -63,13 +65,13 @@ public class XorPlus8 implements Filter {
     }
 
     /**
-     * Calculate the table (array) length. This is 1.23 times the size.
+     * Calculate the table (array) length. This is 1.23 times the size, plus an offset of 32 (see paper, Fig. 1)
      *
      * @param size the number of entries
      * @return the table length
      */
     private static int getArrayLength(int size) {
-        return (int) (HASHES + (long) FACTOR_TIMES_100 * size / 100);
+        return (int) (OFFSET + (long) FACTOR_TIMES_100 * size / 100);
     }
 
     public static XorPlus8 construct(long[] keys) {
