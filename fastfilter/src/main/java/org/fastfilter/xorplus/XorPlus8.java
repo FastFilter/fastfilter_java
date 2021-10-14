@@ -67,13 +67,15 @@ public class XorPlus8 implements Filter {
     }
 
     /**
-     * Calculate the table (array) length. This is 1.23 times the size, plus an offset of 32 (see paper, Fig. 1)
+     * Calculate the table (array) length. This is 1.23 times the size, plus an offset of 32 (see paper, Fig. 1).
+     * We round down to a multiple of HASHES, as any excess entries couldn't be used.
      *
      * @param size the number of entries
      * @return the table length
      */
     private static int getArrayLength(int size) {
-        return (int) (OFFSET + (long) FACTOR_TIMES_100 * size / 100);
+        int arrayLength = (int) (OFFSET + (long) FACTOR_TIMES_100 * size / 100);
+        return arrayLength - (arrayLength % HASHES);
     }
 
     public static XorPlus8 construct(long[] keys) {
