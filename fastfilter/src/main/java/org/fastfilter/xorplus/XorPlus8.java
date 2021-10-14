@@ -82,14 +82,6 @@ public class XorPlus8 implements Filter {
         return new XorPlus8(keys);
     }
 
-    public XorPlus8(int size, byte[] fingerprints) {
-        this.size = size;
-        this.arrayLength = getArrayLength(size);
-        this.bitCount = arrayLength * BITS_PER_FINGERPRINT;
-        this.blockLength = arrayLength / HASHES;
-        this.fingerprints = fingerprints;
-    }
-
     /**
      * Construct the filter. This is basically the BDZ algorithm. The algorithm
      * itself is basically the same as BDZ, except that xor is used to store the
@@ -110,7 +102,6 @@ public class XorPlus8 implements Filter {
     public XorPlus8(long[] keys) {
         this.size = keys.length;
         this.arrayLength = getArrayLength(size);
-        this.bitCount = arrayLength * BITS_PER_FINGERPRINT;
         this.blockLength = arrayLength / HASHES;
         int m = arrayLength;
 
@@ -366,10 +357,10 @@ public class XorPlus8 implements Filter {
             DataInputStream din = new DataInputStream(in);
             size = din.readInt();
             arrayLength = getArrayLength(size);
-            bitCount = arrayLength * BITS_PER_FINGERPRINT;
             blockLength = arrayLength / HASHES;
             seed = din.readLong();
             int fingerprintLength = din.readInt();
+            bitCount = fingerprintLength * BITS_PER_FINGERPRINT;
             fingerprints = new byte[fingerprintLength];
             din.readFully(fingerprints);
             rank = new Rank9(din);
