@@ -118,7 +118,14 @@ public class XorPlus8 implements Filter {
         // we usually execute this loop just once. If we detect a cycle (which is extremely unlikely)
         // then we try again, with a new random seed.
         long seed = 0;
+        int attempts = 0;
         do {
+            attempts++;
+            if (attempts >= 100) {
+                // if the same key appears more than once in the keys array, every attempt to build the table will yield a collision
+                throw new IllegalArgumentException("Unable to construct the table after 100 attempts; likely indicates duplicate keys");
+            }
+
             seed = Hash.randomSeed();
             // we use an second table t2 to keep the list of all keys that map
             // to a given entry (with a broken hash function, all keys could map
