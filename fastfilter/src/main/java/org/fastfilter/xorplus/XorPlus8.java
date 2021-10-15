@@ -25,8 +25,10 @@ public class XorPlus8 implements Filter {
 
     // TODO compression; now we have 9% / 11.5% / 36.5% free entries
 
+    // the number of hash slots which are XORed to compute the stored hash for each key
     private static final int HASHES = 3;
 
+    // this figure is added when computing the size of the table, i.e. it is the 32 in "1.23 * size + 32"
     private static final int OFFSET = 32;
 
     // the table needs to be 1.23 times the number of keys to store
@@ -38,19 +40,19 @@ public class XorPlus8 implements Filter {
     // the number of keys in the filter
     private final int size;
 
-    // the table (array) length, that is size * 1.23
+    // the table (array) length, that is size * 1.23 + 32
     private final int arrayLength;
 
-    // if the table is divided into 3 blocks (one block for each hash)
-    // this allows to better compress the filter,
-    // because the last block contains more zero entries than the first two
+    // the table is divided into 3 (HASHES) blocks, one block for each hash. Each block holds this number of entries.
+    // this allows to better compress the filter, because the last block contains more zero entries than the first two.
     private final int blockLength;
 
     private long seed;
 
-    // the fingerprints (internally an array of long)
+    // the fingerprints
     private byte[] fingerprints;
 
+    // the table (array) length, in bits
     private int bitCount;
 
     private Rank9 rank;
@@ -65,25 +67,19 @@ public class XorPlus8 implements Filter {
     }
 
     /**
-     * Calculate the table (array) length. This is 1.23 times the size, plus an offset of 32 (see paper, Fig. 1)
+     * Calculate the table (array) length. This is 1.23 times the size, plus an offset of 32 (see paper, Fig. 1).
+     * We round down to a multiple of HASHES, as any excess entries couldn't be used.
      *
      * @param size the number of entries
      * @return the table length
      */
     private static int getArrayLength(int size) {
-        return (int) (OFFSET + (long) FACTOR_TIMES_100 * size / 100);
+        int arrayLength = (int) (OFFSET + (long) FACTOR_TIMES_100 * size / 100);
+        return arrayLength - (arrayLength % HASHES);
     }
 
     public static XorPlus8 construct(long[] keys) {
         return new XorPlus8(keys);
-    }
-
-    public XorPlus8(int size, byte[] fingerprints) {
-        this.size = size;
-        this.arrayLength = getArrayLength(size);
-        bitCount = arrayLength * BITS_PER_FINGERPRINT;
-        this.blockLength = arrayLength / HASHES;
-        this.fingerprints = fingerprints;
     }
 
     /**
@@ -105,9 +101,8 @@ public class XorPlus8 implements Filter {
      */
     public XorPlus8(long[] keys) {
         this.size = keys.length;
-        arrayLength = getArrayLength(size);
-        bitCount = arrayLength * BITS_PER_FINGERPRINT;
-        blockLength = arrayLength / HASHES;
+        this.arrayLength = getArrayLength(size);
+        this.blockLength = arrayLength / HASHES;
         int m = arrayLength;
 
         // the order in which the fingerprints are inserted, where
@@ -120,10 +115,17 @@ public class XorPlus8 implements Filter {
         int reverseOrderPos;
 
         // == mapping step ==
-        // hashIndex is usually 0; only if we detect a cycle
-        // (which is extremely unlikely) we would have to use a larger hashIndex
+        // we usually execute this loop just once. If we detect a cycle (which is extremely unlikely)
+        // then we try again, with a new random seed.
         long seed = 0;
+        int attempts = 0;
         do {
+            attempts++;
+            if (attempts >= 100) {
+                // if the same key appears more than once in the keys array, every attempt to build the table will yield a collision
+                throw new IllegalArgumentException("Unable to construct the table after 100 attempts; likely indicates duplicate keys");
+            }
+
             seed = Hash.randomSeed();
             // we use an second table t2 to keep the list of all keys that map
             // to a given entry (with a broken hash function, all keys could map
@@ -140,8 +142,9 @@ public class XorPlus8 implements Filter {
                     int h = getHash(k, seed, hi);
                     t2[h] ^= k;
                     if (t2count[h] > 120) {
-                        // probably something wrong with the hash function
-                        throw new IllegalArgumentException();
+                        // probably something wrong with the hash function; or, the keys[] array contains many copies
+                        // of the same value
+                        throw new IllegalArgumentException("More than 120 keys hashed to the same location; indicates duplicate keys, or a bad hash function");
                     }
                     t2count[h]++;
                 }
@@ -183,7 +186,10 @@ public class XorPlus8 implements Filter {
                     break;
                 }
                 if (t2count[i] <= 0) {
-                    continue;
+                    continue; // if a key is the sole occupant for more than one of its hashes, it will wind up
+                              // being listed in multiple slots of the "alone" table; in that case, when we come
+                              // to the second or third "alone" entry for that key, it will already have been
+                              // removed, and so t2count will be 0.
                 }
                 long k = t2[i];
                 if (t2count[i] != 1) {
@@ -251,9 +257,9 @@ public class XorPlus8 implements Filter {
                 set.set(i);
             }
         }
-        rank = new Rank9(set, blockLength);
+        this.rank = new Rank9(set, blockLength);
 
-        fingerprints = new byte[2 * blockLength + set.cardinality()];
+        this.fingerprints = new byte[2 * blockLength + set.cardinality()];
         if (2 * blockLength >= 0) {
             System.arraycopy(fp, 0, fingerprints, 0, 2 * blockLength);
         }
@@ -358,10 +364,10 @@ public class XorPlus8 implements Filter {
             DataInputStream din = new DataInputStream(in);
             size = din.readInt();
             arrayLength = getArrayLength(size);
-            bitCount = arrayLength * BITS_PER_FINGERPRINT;
             blockLength = arrayLength / HASHES;
             seed = din.readLong();
             int fingerprintLength = din.readInt();
+            bitCount = fingerprintLength * BITS_PER_FINGERPRINT;
             fingerprints = new byte[fingerprintLength];
             din.readFully(fingerprints);
             rank = new Rank9(din);
