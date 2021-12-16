@@ -42,13 +42,9 @@ public class XorBinaryFuse8 implements Filter {
     static int calculateSegmentLength(int arity, int size) {
         int segmentLength;
         if (arity == 3) {
-            segmentLength = 2 << (int) (0.831 * Math.log(size) + 0.75 + 0.5);
-            // max 16 bit
-            // segmentLength = 1L << (int) (2.2 + 0.76 * log(size));
-            // max 18 bit
-            // segmentLength = 1L << (int) (2.0 + 0.95 * log(size));
+            segmentLength = 1 << (int) Math.floor(Math.log(size) / Math.log(3.33) + 2.25);
         } else if (arity == 4) {
-            segmentLength = 1 << (int) (0.936 * Math.log(size) - 1 + 0.5);
+            return 1 << (int) Math.floor(Math.log(size) / Math.log(2.91) - 0.5);
         } else {
             // not supported
             segmentLength = 65536;
@@ -59,10 +55,9 @@ public class XorBinaryFuse8 implements Filter {
     static double calculateSizeFactor(int arity, int size) {
         double sizeFactor;
         if (arity == 3) {
-            sizeFactor = Math.max(1.125, 0.4 + 9.3 / Math.log(size));
-            // sizeFactor = fmax(1.14, 0.14 + log(2000000) / log(size));
+            sizeFactor = Math.max(1.125, 0.875 + 0.25 * Math.log(1000000) / Math.log(size));
         } else if (arity == 4) {
-            sizeFactor = Math.max(1.075, 0.77 + 4.06 / Math.log(size));
+            sizeFactor = Math.max(1.075, 0.77 + 0.305 * Math.log(600000) / Math.log(size));
         } else {
             // not supported
             sizeFactor = 2.0;
@@ -99,7 +94,6 @@ public class XorBinaryFuse8 implements Filter {
     private void addAll(long[] keys) {
         int size = keys.length;
         long[] reverseOrder = new long[size + 1];
-        reverseOrder[size] = 1;
         byte[] reverseH = new byte[size];
         int reverseOrderPos = 0;
 
@@ -118,6 +112,7 @@ public class XorBinaryFuse8 implements Filter {
         }
         int block = 1 << blockBits;
         while (true) {
+            reverseOrder[size] = 1;
             int[] startPos = new int[block];
             for (int i = 0; i < 1 << blockBits; i++) {
                 startPos[i] = (int) ((long) i * size / block);
