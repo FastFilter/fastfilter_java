@@ -44,7 +44,7 @@ public class XorBinaryFuse8 implements Filter {
         if (arity == 3) {
             segmentLength = 1 << (int) Math.floor(Math.log(size) / Math.log(3.33) + 2.25);
         } else if (arity == 4) {
-            return 1 << (int) Math.floor(Math.log(size) / Math.log(2.91) - 0.5);
+            segmentLength = 1 << (int) Math.floor(Math.log(size) / Math.log(2.91) - 0.5);
         } else {
             // not supported
             segmentLength = 65536;
