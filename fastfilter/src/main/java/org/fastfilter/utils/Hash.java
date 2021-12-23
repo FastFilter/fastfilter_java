@@ -35,4 +35,16 @@ public class Hash {
         return (int) (((hash & 0xffffffffL) * n) >>> 32);
     }
 
+    /**
+     * Multiply two unsigned 64-bit values.
+     * See https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8188044
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return the result
+     */
+    public static long multiplyHighUnsigned(long a, long b) {
+        return Math.multiplyHigh(a, b) + ((a >> 63) & b) + ((b >> 63) & a);
+    }
+
 }

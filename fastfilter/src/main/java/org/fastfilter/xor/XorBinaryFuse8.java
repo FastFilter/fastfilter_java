@@ -42,7 +42,7 @@ public class XorBinaryFuse8 implements Filter {
     static int calculateSegmentLength(int arity, int size) {
         int segmentLength;
         if (arity == 3) {
-            segmentLength = 1 << (int) Math.floor(Math.log(size) / Math.log(3.33) + 2.25);
+            segmentLength = 1 << (int) Math.floor(Math.log(size) / Math.log(3.33) + 2.11);
         } else if (arity == 4) {
             segmentLength = 1 << (int) Math.floor(Math.log(size) / Math.log(2.91) - 0.5);
         } else {
@@ -200,17 +200,17 @@ public class XorBinaryFuse8 implements Filter {
             Arrays.fill(reverseOrder, 0);
 
             // TODO
-            System.out.println("WARNING: hashIndex " + hashIndex + "\n");
-            if (hashIndex >= 0) {
-                System.out.println(size + " keys; arrayLength " + arrayLength + " reverseOrderPos " + reverseOrderPos);
-            }
+            // if (hashIndex > 10) {
+            //     System.out.println("WARNING: hashIndex " + hashIndex + "\n");
+            //     System.out.println(size + " keys; arrayLength " + arrayLength + " reverseOrderPos " + reverseOrderPos + " segmentLength " + segmentLength + " segmentCount " + segmentCount);
+            // }
             if (hashIndex > 100) {
                 // if construction doesn't succeed eventually,
                 // then there is likely a problem with the hash function
-                break;
+                throw new IllegalArgumentException("Construction failed after " + hashIndex + " retries for size " + size);
             }
             // use a new random numbers
-            seed++;
+            seed = Hash.randomSeed();
         }
         alone = null;
         t2count = null;
@@ -246,8 +246,14 @@ public class XorBinaryFuse8 implements Filter {
         return (f & 0xff) == 0;
     }
 
+    @Override
+    public String toString() {
+        return "segmentLength " + segmentLength + " segmentCount " + segmentCount;
+    }
+
     int getHashFromHash(long hash, int index) {
         long h = Hash.reduce((int) (hash >>> 32), segmentCountLength);
+        // long h = Hash.multiplyHighUnsigned(hash, segmentCountLength);
         h += index * segmentLength;
         // keep the lower 36 bits
         long hh = hash & ((1L << 36) - 1);
