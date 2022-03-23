@@ -159,7 +159,7 @@ public class XorBinaryFuse8 implements Filter {
                 }
                 // use a new random numbers
                 seed = Hash.randomSeed();
-                break;
+                continue;
             }
 
             reverseOrderPos = 0;
