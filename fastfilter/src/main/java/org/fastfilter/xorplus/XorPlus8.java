@@ -123,7 +123,10 @@ public class XorPlus8 implements Filter {
             attempts++;
             if (attempts >= 100) {
                 // if the same key appears more than once in the keys array, every attempt to build the table will yield a collision
-                throw new IllegalArgumentException("Unable to construct the table after 100 attempts; likely indicates duplicate keys");
+                for(int i = 0; i < fingerprints.length; i++) {
+                    fingerprints[i] = (byte)0xFF;
+                }
+                return;
             }
 
             seed = Hash.randomSeed();

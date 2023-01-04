@@ -53,7 +53,12 @@ public class Xor16 implements Filter {
                     int h = getHash(k, seed, hi);
                     t2[h] ^= k;
                     if (t2count[h] > 120) {
-                        throw new IllegalArgumentException();
+                        // probably something wrong with the hash function
+                        // let us not crash the system:
+                        for(int i = 0; i < fingerprints.length; i++) {
+                            fingerprints[i] = (short)0xFFFF;
+                        }
+                        return;
                     }
                     t2count[h]++;
                 }

@@ -147,7 +147,10 @@ public class XorBinaryFuse8 implements Filter {
                 // we have a possible counter overflow
                 // this branch is never taken except if there is a problem in the hash code
                 // in which case construction fails
-                break;
+                for(int i = 0; i < fingerprints.length; i++) {
+                    fingerprints[i] = (byte)0xFF;
+                }
+                return;
             }
 
             reverseOrderPos = 0;
@@ -199,15 +202,14 @@ public class XorBinaryFuse8 implements Filter {
             Arrays.fill(t2hash, 0);
             Arrays.fill(reverseOrder, 0);
 
-            // TODO
-            // if (hashIndex > 10) {
-            //     System.out.println("WARNING: hashIndex " + hashIndex + "\n");
-            //     System.out.println(size + " keys; arrayLength " + arrayLength + " reverseOrderPos " + reverseOrderPos + " segmentLength " + segmentLength + " segmentCount " + segmentCount);
-            // }
             if (hashIndex > 100) {
                 // if construction doesn't succeed eventually,
                 // then there is likely a problem with the hash function
-                throw new IllegalArgumentException("Construction failed after " + hashIndex + " retries for size " + size);
+                // let us not crash the system:
+                for(int i = 0; i < fingerprints.length; i++) {
+                    fingerprints[i] = (byte)0xFF;
+                }
+                return;
             }
             // use a new random numbers
             seed = Hash.randomSeed();
@@ -215,9 +217,6 @@ public class XorBinaryFuse8 implements Filter {
         alone = null;
         t2count = null;
         t2hash = null;
-        if (reverseOrderPos != size) {
-            throw new IllegalStateException();
-        }
 
         for (int i = reverseOrderPos - 1; i >= 0; i--) {
             long hash = reverseOrder[i];
