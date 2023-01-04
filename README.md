@@ -1,6 +1,6 @@
 # Fast Approximate Membership Filters in Java
 
-[![Build Status](https://travis-ci.com/FastFilter/fastfilter_java.svg?branch=master)](https://travis-ci.com/FastFilter/fastfilter_java)
+[![Java 17 CI](https://github.com/FastFilter/fastfilter_java/actions/workflows/java.yml/badge.svg)](https://github.com/FastFilter/fastfilter_java/actions/workflows/java.yml)
 
 The following filter types are currently implemented:
 
