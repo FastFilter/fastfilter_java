@@ -59,7 +59,11 @@ public class Xor8 implements Filter {
                     t2[h] ^= k;
                     if (t2count[h] > 120) {
                         // probably something wrong with the hash function
-                        throw new IllegalArgumentException();
+                        // let us not crash the system:
+                        for(int i = 0; i < fingerprints.length; i++) {
+                            fingerprints[i] = (byte)0xFF;
+                        }
+                        return;
                     }
                     t2count[h]++;
                 }
