@@ -13,6 +13,6 @@ jobs:
         with:
           java-version: 17
       - name: Build
-        run: mvn build
+        run: mvn package
       - name: Test
         run: mvn test
