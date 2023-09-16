@@ -52,6 +52,7 @@ public class Xor8 implements Filter {
         mainloop:
         do {
             seed = Hash.randomSeed();
+            reverseOrderPos = 0;
             byte[] t2count = new byte[m];
             long[] t2 = new long[m];
             for (long k : keys) {
@@ -65,7 +66,6 @@ public class Xor8 implements Filter {
                     t2count[h]++;
                 }
             }
-            reverseOrderPos = 0;
             int[][] alone = new int[HASHES][blockLength];
             int[] alonePos = new int[HASHES];
             for (int nextAlone = 0; nextAlone < HASHES; nextAlone++) {
