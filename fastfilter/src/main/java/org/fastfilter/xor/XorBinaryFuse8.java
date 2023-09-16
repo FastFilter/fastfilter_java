@@ -111,6 +111,7 @@ public class XorBinaryFuse8 implements Filter {
             blockBits++;
         }
         int block = 1 << blockBits;
+        mainloop:
         while (true) {
             reverseOrder[size] = 1;
             int[] startPos = new int[block];
@@ -145,12 +146,7 @@ public class XorBinaryFuse8 implements Filter {
             startPos = null;
             if (countMask < 0) {
                 // we have a possible counter overflow
-                // this branch is never taken except if there is a problem in the hash code
-                // in which case construction fails
-                for(int i = 0; i < fingerprints.length; i++) {
-                    fingerprints[i] = (byte)0xFF;
-                }
-                return;
+                continue mainloop;
             }
 
             reverseOrderPos = 0;

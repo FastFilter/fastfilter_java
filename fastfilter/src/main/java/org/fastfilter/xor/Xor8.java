@@ -49,6 +49,7 @@ public class Xor8 implements Filter {
         byte[] reverseH = new byte[size];
         int reverseOrderPos;
         long seed;
+        mainloop:
         do {
             seed = Hash.randomSeed();
             byte[] t2count = new byte[m];
@@ -59,11 +60,7 @@ public class Xor8 implements Filter {
                     t2[h] ^= k;
                     if (t2count[h] > 120) {
                         // probably something wrong with the hash function
-                        // let us not crash the system:
-                        for(int i = 0; i < fingerprints.length; i++) {
-                            fingerprints[i] = (byte)0xFF;
-                        }
-                        return;
+                        continue mainloop;
                     }
                     t2count[h]++;
                 }

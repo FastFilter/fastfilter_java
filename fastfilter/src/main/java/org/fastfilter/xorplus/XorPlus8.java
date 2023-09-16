@@ -119,6 +119,7 @@ public class XorPlus8 implements Filter {
         // then we try again, with a new random seed.
         long seed = 0;
         int attempts = 0;
+        mainloop:
         do {
             attempts++;
             if (attempts >= 100) {
@@ -145,9 +146,7 @@ public class XorPlus8 implements Filter {
                     int h = getHash(k, seed, hi);
                     t2[h] ^= k;
                     if (t2count[h] > 120) {
-                        // probably something wrong with the hash function; or, the keys[] array contains many copies
-                        // of the same value
-                        throw new IllegalArgumentException("More than 120 keys hashed to the same location; indicates duplicate keys, or a bad hash function");
+                        continue mainloop;
                     }
                     t2count[h]++;
                 }
