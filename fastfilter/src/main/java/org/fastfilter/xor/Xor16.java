@@ -47,6 +47,7 @@ public class Xor16 implements Filter {
         mainloop:
         do {
             seed = Hash.randomSeed();
+            reverseOrderPos = 0;
             byte[] t2count = new byte[arrayLength];
             long[] t2 = new long[arrayLength];
             for (long k : keys) {
@@ -62,7 +63,6 @@ public class Xor16 implements Filter {
             }
             int[] alone = new int[arrayLength];
             int alonePos = 0;
-            reverseOrderPos = 0;
             for (int nextAloneCheck = 0; nextAloneCheck < arrayLength; ) {
                 while (nextAloneCheck < arrayLength) {
                     if (t2count[nextAloneCheck] == 1) {
