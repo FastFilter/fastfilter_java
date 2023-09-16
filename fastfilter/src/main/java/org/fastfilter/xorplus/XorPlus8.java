@@ -131,6 +131,8 @@ public class XorPlus8 implements Filter {
             }
 
             seed = Hash.randomSeed();
+            reverseOrderPos = 0;
+
             // we use an second table t2 to keep the list of all keys that map
             // to a given entry (with a broken hash function, all keys could map
             // to entry zero).
@@ -155,7 +157,6 @@ public class XorPlus8 implements Filter {
             // == generate the queue ==
             // for each entry that is alone,
             // we remove it from t2, and add it to the reverseOrder list
-            reverseOrderPos = 0;
             // the list of indexes in the table that are "alone", that is,
             // only have one key pointing to them
             // we have one list per block, so that one block can have more empty entries
