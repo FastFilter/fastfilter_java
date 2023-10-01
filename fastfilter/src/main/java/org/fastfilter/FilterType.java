@@ -8,10 +8,7 @@ import org.fastfilter.cuckoo.Cuckoo8;
 import org.fastfilter.cuckoo.CuckooPlus16;
 import org.fastfilter.cuckoo.CuckooPlus8;
 import org.fastfilter.gcs.GolombCompressedSet;
-import org.fastfilter.xor.Xor16;
-import org.fastfilter.xor.Xor8;
-import org.fastfilter.xor.XorSimple;
-import org.fastfilter.xor.XorSimple2;
+import org.fastfilter.xor.*;
 import org.fastfilter.xorplus.XorPlus8;
 
 /**
@@ -82,6 +79,12 @@ public enum FilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return Xor16.construct(keys);
+        }
+    },
+    XOR_BINARY_FUSE_8 {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return XorBinaryFuse8.construct(keys);
         }
     },
     XOR_PLUS_8 {
