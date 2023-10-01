@@ -23,6 +23,7 @@ public class ConstructionState {
             "XOR_SIMPLE_2",
             "XOR_8",
             "XOR_16",
+            "XOR_BINARY_FUSE_8",
             "XOR_PLUS_8",
             "CUCKOO_8",
             "CUCKOO_16",
