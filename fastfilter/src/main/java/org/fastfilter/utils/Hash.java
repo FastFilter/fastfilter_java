@@ -32,7 +32,7 @@ public class Hash {
      */
     public static int reduce(int hash, int n) {
         // http://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
-        return (int) (((hash & 0xffffffffL) * n) >>> 32);
+        return (int) (((hash & 0xffffffffL) * (n & 0xffffffffL)) >>> 32);
     }
 
     /**

@@ -183,9 +183,6 @@ public class TestAllFilters {
             }
             time = System.nanoTime() - time;
             nanosPerRemove = time / len;
-if (f.cardinality() != 0) {
-    System.out.println(f.cardinality());
-}
             assertEquals(f.toString(), 0, f.cardinality());
         }
         if (log) {
