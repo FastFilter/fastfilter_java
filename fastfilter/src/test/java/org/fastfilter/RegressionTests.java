@@ -79,4 +79,12 @@ public class RegressionTests {
             assertTrue(filter.mayContain(key));
         }
     }
+
+    @Test
+    public void issue40() {
+        long hash = 4282432426L;
+        long n = 2400000016L; // important: exceeds 2147483647
+        long r = (long)(Hash.reduce((int)hash, (int)n) & 0xffffffffL);
+        assertTrue(r < n);
+    }
 }
