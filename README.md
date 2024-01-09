@@ -45,6 +45,7 @@ When using Maven:
 * [Java](https://github.com/komiya-atsushi/xor-filter)
 * [Python](https://github.com/GreyDireWolf/pyxorfilter)
 * Rust: [1](https://github.com/bnclabs/xorfilter), [2](https://github.com/codri/xorfilter-rs), [3](https://github.com/Polochon-street/rustxorfilter)
+* [C#](https://github.com/jonmat/FastIndex)
 
 ## Password Lookup Tool
 
