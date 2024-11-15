@@ -87,6 +87,12 @@ public enum FilterType {
             return XorBinaryFuse8.construct(keys);
         }
     },
+    XOR_BINARY_FUSE_32 {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return XorBinaryFuse32.construct(keys);
+        }
+    },
     XOR_PLUS_8 {
         @Override
         public Filter construct(long[] keys, int setting) {
