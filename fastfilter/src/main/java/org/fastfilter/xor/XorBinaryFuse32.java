@@ -238,7 +238,7 @@ public class XorBinaryFuse32 implements Filter {
         h1 ^= (int) ((hh >> 18) & segmentLengthMask);
         h2 ^= (int) ((hh) & segmentLengthMask);
         f ^= fingerprints[h0] ^ fingerprints[h1] ^ fingerprints[h2];
-        return (f & 0xff) == 0;
+        return (f & 0xffffffffL) == 0;
     }
 
     @Override
