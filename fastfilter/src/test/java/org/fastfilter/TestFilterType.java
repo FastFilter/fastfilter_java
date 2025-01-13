@@ -11,11 +11,7 @@ import org.fastfilter.cuckoo.CuckooPlus8;
 import org.fastfilter.gcs.GolombCompressedSet;
 import org.fastfilter.gcs.GolombCompressedSet2;
 import org.fastfilter.mphf.MPHFilter;
-import org.fastfilter.xor.Xor16;
-import org.fastfilter.xor.Xor8;
-import org.fastfilter.xor.XorBinaryFuse8;
-import org.fastfilter.xor.XorSimple;
-import org.fastfilter.xor.XorSimple2;
+import org.fastfilter.xor.*;
 import org.fastfilter.xorplus.XorPlus8;
 
 /**
@@ -100,6 +96,12 @@ public enum TestFilterType {
             return XorBinaryFuse8.construct(keys);
         }
     },
+    XOR_BINARY_FUSE_32 {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return XorBinaryFuse32.construct(keys);
+        }
+    },
     CUCKOO_8 {
         @Override
         public Filter construct(long[] keys, int setting) {
@@ -146,7 +148,7 @@ public enum TestFilterType {
     /**
      * Construct the filter with the given keys and the setting.
      *
-     * @param keys the keys
+     * @param keys    the keys
      * @param setting the setting (roughly bits per fingerprint)
      * @return the constructed filter
      */

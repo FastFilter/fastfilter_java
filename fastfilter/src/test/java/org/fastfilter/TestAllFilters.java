@@ -107,6 +107,14 @@ public class TestAllFilters {
             System.out.println("size " + size);
             test(TestFilterType.XOR_BINARY_FUSE_8, size, 0, true);
         }
+        for (int size = 1; size <= 100; size++) {
+            System.out.println("size " + size);
+            test(TestFilterType.XOR_BINARY_FUSE_32, size, 0, true);
+        }
+        for (int size = 100; size <= 100000; size *= 1.1) {
+            System.out.println("size " + size);
+            test(TestFilterType.XOR_BINARY_FUSE_32, size, 0, true);
+        }
         for (int size = 1_000_000; size <= 8_000_000; size *= 2) {
             System.out.println("size " + size);
             testAll(size, true);

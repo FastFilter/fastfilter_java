@@ -13,6 +13,7 @@ public class SmallSetTest {
         Xor8.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
         Xor16.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
         XorBinaryFuse8.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
+        XorBinaryFuse32.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
         XorSimple.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
         XorSimple2.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
     }
@@ -27,7 +28,29 @@ public class SmallSetTest {
             testWithSize(n);
         }
     }
-        
+
+
+    @Test
+    public void smallSizes32() {
+        long lastTime = System.currentTimeMillis();
+        for (int n = 1; n < 1_500_000; n = (int) ((n * 1.01) + 7)) {
+            XorBinaryFuse32 f = testWithSize32(n);
+            long now = System.currentTimeMillis();
+            if (now - lastTime > 5000) {
+                lastTime = now;
+                System.out.println("n=" + n + " " + f.toString());
+            }
+        }
+    }
+
+    private static XorBinaryFuse32 testWithSize32(int n) {
+        long[] keys = new long[n];
+        for (int i = 0; i < n; i++) {
+            keys[i] = i;
+        }
+        return XorBinaryFuse32.construct(keys);
+    }
+
     @Test
     public void smallSizes() {
         long lastTime = System.currentTimeMillis();
