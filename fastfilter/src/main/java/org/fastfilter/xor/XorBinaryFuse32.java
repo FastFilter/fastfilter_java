@@ -258,7 +258,7 @@ public class XorBinaryFuse32 implements Filter {
     }
 
     private int fingerprint(long hash) {
-        return (int) hash;
-        }
+        return (int) (hash ^ (hash >>> 32));
+    }
 
 }
