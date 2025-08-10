@@ -1,0 +1,374 @@
+# ============================================
+# .github/workflows/libc-detection-tests.yml
+# Main CI workflow for LibC detection testing
+# ============================================
+
+name: LibC Detection Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**/*.java'
+      - 'src/**/*.c'
+      - 'pom.xml'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable debug mode'
+        required: false
+        default: false
+
+env:
+  JAVA_VERSION: '21'
+  MAVEN_OPTS: -Xmx4g -Xms1g
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  # ============================================
+  # Basic unit tests on multiple OS
+  # ============================================
+  unit-tests:
+    name: Unit Tests - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        java: [21]
+        include:
+          - os: ubuntu-latest
+            expected_libc: glibc
+          - os: macos-latest
+            expected_libc: darwin
+          - os: windows-latest
+            expected_libc: msvcrt
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'oracle'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run unit tests
+        run: |
+          mvn clean test -Dtest=LibCTypeTest
+
+      - name: Verify LibC detection
+        run: |
+          mvn compile exec:java -Dexec.mainClass="com.example.ffi.platform.LibCType"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: |
+            target/surefire-reports/
+            target/site/
+
+  # ============================================
+  # QEMU multi-architecture tests
+  # ============================================
+  qemu-tests:
+    name: QEMU Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64, armv7, riscv64, s390x, ppc64le]
+        include:
+          - arch: amd64
+            qemu_arch: x86_64
+            platform: linux/amd64
+          - arch: arm64
+            qemu_arch: aarch64
+            platform: linux/arm64
+          - arch: armv7
+            qemu_arch: arm
+            platform: linux/arm/v7
+          - arch: riscv64
+            qemu_arch: riscv64
+            platform: linux/riscv64
+          - arch: s390x
+            qemu_arch: s390x
+            platform: linux/s390x
+          - arch: ppc64le
+            qemu_arch: ppc64le
+            platform: linux/ppc64le
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Verify QEMU installation
+        run: |
+          echo "Installed QEMU architectures:"
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          ls -la /proc/sys/fs/binfmt_misc/
+
+      - name: Test Alpine (musl) on ${{ matrix.arch }}
+        run: |
+          docker run --rm --platform ${{ matrix.platform }} alpine:latest sh -c "
+            echo 'Architecture: \$(uname -m)'
+            echo 'LibC detection:'
+            ldd --version 2>&1 || echo 'ldd not found'
+            if [ -f /etc/alpine-release ]; then
+              echo 'Detected: Alpine Linux (musl)'
+              cat /etc/alpine-release
+            fi
+            ls -la /lib/ld-musl* 2>/dev/null || echo 'No musl loader found'
+          "
+
+      - name: Test Ubuntu (glibc) on ${{ matrix.arch }}
+        if: matrix.arch != 'riscv64' # Ubuntu doesn't have official riscv64 images
+        run: |
+          docker run --rm --platform ${{ matrix.platform }} ubuntu:22.04 sh -c "
+            echo 'Architecture: \$(uname -m)'
+            echo 'LibC detection:'
+            ldd --version 2>&1 | head -1
+            ls -la /lib*/ld-linux* 2>/dev/null || echo 'No glibc loader found'
+          "
+
+  # ============================================
+  # Docker container tests with Java
+  # ============================================
+  docker-tests:
+    name: Docker Tests - ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: alpine:latest
+            libc: musl
+            install_java: "apk add --no-cache openjdk21-jdk"
+          - image: ubuntu:22.04
+            libc: glibc
+            install_java: "apt-get update && apt-get install -y openjdk-21-jdk"
+          - image: debian:bullseye
+            libc: glibc
+            install_java: "apt-get update && apt-get install -y openjdk-17-jdk"
+          - image: fedora:39
+            libc: glibc
+            install_java: "dnf install -y java-21-openjdk-devel"
+          - image: archlinux:latest
+            libc: glibc
+            install_java: "pacman -Sy --noconfirm jdk-openjdk"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build test container
+        run: |
+          cat > Dockerfile.test <<EOF
+          FROM ${{ matrix.image }}
+          
+          # Install Java
+          RUN ${{ matrix.install_java }}
+          
+          # Copy source code
+          WORKDIR /app
+          COPY src/ ./src/
+          COPY pom.xml ./
+          
+          # Install build tools
+          RUN if command -v apk > /dev/null; then \
+                apk add --no-cache maven; \
+              elif command -v apt-get > /dev/null; then \
+                apt-get update && apt-get install -y maven; \
+              elif command -v dnf > /dev/null; then \
+                dnf install -y maven; \
+              elif command -v pacman > /dev/null; then \
+                pacman -Sy --noconfirm maven; \
+              fi
+          
+          # Compile
+          RUN mvn compile
+          
+          # Run detection
+          CMD ["mvn", "exec:java", "-Dexec.mainClass=com.example.ffi.platform.LibCType"]
+          EOF
+          
+          docker build -f Dockerfile.test -t libc-test:${{ matrix.libc }} .
+
+      - name: Run LibC detection in container
+        run: |
+          docker run --rm libc-test:${{ matrix.libc }}
+
+      - name: Verify LibC type
+        run: |
+          docker run --rm libc-test:${{ matrix.libc }} sh -c "
+            ldd --version 2>&1 | head -1
+            echo 'Expected: ${{ matrix.libc }}'
+          "
+
+  # ============================================
+  # Nix-based testing
+  # ============================================
+  nix-tests:
+    name: Nix Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v24
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v14
+        with:
+          name: libc-testing
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+      - name: Build with Nix
+        run: |
+          nix build .#default
+          nix build .#detector-aarch64
+          nix build .#detector-musl-x64
+
+      - name: Run Nix tests
+        run: |
+          nix develop --command make test
+          nix run .#default
+
+      - name: Cross-compilation test
+        run: |
+          nix develop --command make cross-aarch64
+          nix develop --command make cross-armv7
+
+  # ============================================
+  # Performance benchmarks
+  # ============================================
+  benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'oracle'
+
+      - name: Run JMH benchmarks
+        run: |
+          mvn clean compile
+          mvn exec:java -Dexec.mainClass="com.example.ffi.platform.LibCBenchmark"
+
+      - name: Store benchmark results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'jmh'
+          output-file-path: target/jmh-result.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: true
+
+  # ============================================
+  # Matrix testing for different Java versions
+  # ============================================
+  java-matrix:
+    name: Java ${{ matrix.java }} Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: ['21', '22-ea', '23-ea', '24-ea']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'oracle'
+
+      - name: Test with Java ${{ matrix.java }}
+        run: |
+          java --version
+          mvn clean test
+
+  # ============================================
+  # Release workflow
+  # ============================================
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [unit-tests, qemu-tests, docker-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'oracle'
+
+      - name: Build release artifacts
+        run: |
+          mvn clean package
+
+      - name: Create release JARs
+        run: |
+          mkdir -p release
+          cp target/*.jar release/
+
+      - name: Build native images
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+
+      - name: Compile native images
+        run: |
+          native-image -jar target/libc-detector.jar -o release/libc-detector-linux-amd64
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release/

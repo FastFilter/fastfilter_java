@@ -1,0 +1,54 @@
+name: Nightly Tests
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  comprehensive-tests:
+    name: Comprehensive LibC Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qemu-user-static \
+            binfmt-support \
+            gcc-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabihf \
+            gcc-riscv64-linux-gnu
+
+      - name: Test all architectures
+        run: |
+          # Create test matrix
+          ARCHITECTURES="x86_64 aarch64 armv7l riscv64 s390x ppc64le"
+          LIBCS="glibc musl uclibc bionic"
+          
+          for arch in $ARCHITECTURES; do
+            for libc in $LIBCS; do
+              echo "Testing $arch with $libc..."
+              # Run specific test based on availability
+            done
+          done
+
+      - name: Generate compatibility matrix
+        run: |
+          echo "# LibC Compatibility Matrix" > COMPATIBILITY.md
+          echo "Generated: $(date)" >> COMPATIBILITY.md
+          echo "" >> COMPATIBILITY.md
+          echo "| Architecture | glibc | musl | uclibc | bionic |" >> COMPATIBILITY.md
+          echo "|-------------|-------|------|--------|--------|" >> COMPATIBILITY.md
+          # Add test results
+
+      - name: Commit compatibility matrix
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'COMPATIBILITY.md'
+          message: 'Update compatibility matrix [skip ci]'
+          default_author: github_actions

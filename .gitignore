@@ -33,3 +33,22 @@ target/*
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 /bin/
+
+# Bazel artifacts
+bazel-*
+.bazelrc.user
+.bazelversion
+MODULE.bazel.lock
+
+# External dependencies (fetched by Bazel)
+fastfilter_cpp/
+
+# Native library build artifacts
+native-libs/*/target/
+*.dylib
+*.so
+*.dll
+
+# Benchmark results
+benchmark-results/
+*.json

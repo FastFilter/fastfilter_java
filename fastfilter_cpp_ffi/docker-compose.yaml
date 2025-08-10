@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # x86_64 architectures
+  alpine-x64:
+    image: alpine:latest
+    platform: linux/amd64
+    command: sleep 3600
+
+  ubuntu-x64:
+    image: ubuntu:22.04
+    platform: linux/amd64
+    command: sleep 3600
+
+  debian-x64:
+    image: debian:bullseye
+    platform: linux/amd64
+    command: sleep 3600
+
+  # ARM64 architectures
+  alpine-arm64:
+    image: alpine:latest
+    platform: linux/arm64
+    command: sleep 3600
+
+  ubuntu-arm64:
+    image: ubuntu:22.04
+    platform: linux/arm64
+    command: sleep 3600
+
+  # ARM32 architectures
+  alpine-armv7:
+    image: arm32v7/alpine:latest
+    platform: linux/arm/v7
+    command: sleep 3600
+
+  debian-armv7:
+    image: arm32v7/debian:bullseye
+    platform: linux/arm/v7
+    command: sleep 3600
+
+  # Other architectures (with QEMU)
+  alpine-riscv64:
+    image: riscv64/alpine:edge
+    platform: linux/riscv64
+    command: sleep 3600
+
+  alpine-s390x:
+    image: s390x/alpine:latest
+    platform: linux/s390x
+    command: sleep 3600

@@ -27,7 +27,7 @@ public class Select {
 
     private static final long ONES_STEP_4 = 0x1111111111111111L;
     private static final long ONES_STEP_8 = 0x0101010101010101L;
-    private static final long MSBS_STEP_8 = 0x80L * ONES_STEP_8;
+    private static final long MSBS_STEP_8 = 0x8080808080808080L;
 
     private static final byte[] SELECT_IN_BYTE = {
             -1, 0, 1, 0, 2, 0, 1, 0, 3,
@@ -152,10 +152,10 @@ public class Select {
         // TODO this adds bytecode weight which influence inlining decisions
         assert n < Long.bitCount(x): n + " >= " + Long.bitCount(x);
         // Phase 1: sums by byte
-        long byteSums = x - ((x & 0xa * ONES_STEP_4) >>> 1);
-        byteSums = (byteSums & 3 * ONES_STEP_4) +
-                ((byteSums >>> 2) & 3 * ONES_STEP_4);
-        byteSums = (byteSums + (byteSums >>> 4)) & 0x0f * ONES_STEP_8;
+        long byteSums = x - ((x & 0xaaaaaaaaaaaaaaaaL) >>> 1);
+        byteSums = (byteSums & 0x3333333333333333L) +
+                ((byteSums >>> 2) & 0x3333333333333333L);
+        byteSums = (byteSums + (byteSums >>> 4)) & 0x0f0f0f0f0f0f0f0fL;
         byteSums *= ONES_STEP_8;
         // Phase 2: compare each byte sum with rank to obtain the relevant byte
         long rankStep8 = n * ONES_STEP_8;

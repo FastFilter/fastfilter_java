@@ -13,9 +13,20 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- FastFilter FFI Java bindings for C++ integration -->
+        <dependency>
+            <groupId>io.github.fastfilter</groupId>
+            <artifactId>fastfilter-ffi-java</artifactId>
+            <version>${project.version}</version>
+            <optional>true</optional>
+        </dependency>
+        
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
         </dependency>
     </dependencies>
 

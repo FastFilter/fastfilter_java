@@ -1,0 +1,2 @@
+# # Windows x64-specific Native Library Configuration
+search.paths=${ProgramFiles}:${ProgramW6432}:C:\\msys64\\mingw64\\bin
