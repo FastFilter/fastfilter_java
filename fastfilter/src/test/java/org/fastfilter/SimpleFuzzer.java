@@ -1,6 +1,6 @@
 package org.fastfilter;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
@@ -22,7 +22,7 @@ public class SimpleFuzzer {
                             Hash.setSeed(seed);
                             Filter filter = type.construct(keys, bitsPerKey);
                             for (long key : keys) {
-                                assertTrue(seed + "/" + type + "/" + Arrays.toString(keys), filter.mayContain(key));
+                                assertTrue(filter.mayContain(key), seed + "/" + type + "/" + Arrays.toString(keys));
                             }
                         }
                     } catch (Exception e) {

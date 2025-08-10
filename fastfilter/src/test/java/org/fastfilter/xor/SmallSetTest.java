@@ -1,6 +1,6 @@
 package org.fastfilter.xor;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test small sets.

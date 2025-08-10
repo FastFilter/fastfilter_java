@@ -1,13 +1,14 @@
 package org.fastfilter.utils;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Hash {
 
     private static Random random = new Random();
 
     public static void setSeed(long seed) {
-        random.setSeed(seed);
+        random = new Random(seed);
     }
 
     public static long hash64(long x, long seed) {
@@ -44,7 +45,7 @@ public class Hash {
      * @return the result
      */
     public static long multiplyHighUnsigned(long a, long b) {
-        return Math.multiplyHigh(a, b) + ((a >> 63) & b) + ((b >> 63) & a);
+        return Math.unsignedMultiplyHigh(a, b);
     }
 
 }

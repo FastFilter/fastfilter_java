@@ -1,15 +1,15 @@
 package org.fastfilter.xorplus;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.BitSet;
 import java.util.Random;
 
 import org.fastfilter.utils.Hash;
 import org.fastfilter.xorplus.Rank9;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the simple rank/select implementation.

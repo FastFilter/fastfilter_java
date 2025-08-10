@@ -6,7 +6,7 @@ import java.util.SplittableRandom;
 
 public enum KeyGenerationStrategy {
     RANDOM64 {
-        SplittableRandom random = new SplittableRandom(Environment.SEED);
+        final SplittableRandom random = new SplittableRandom(Environment.SEED);
 
         @Override
         long nextKey() {
@@ -14,7 +14,7 @@ public enum KeyGenerationStrategy {
         }
     },
     RANDOM32 {
-        SplittableRandom random = new SplittableRandom(Environment.SEED);
+        final SplittableRandom random = new SplittableRandom(Environment.SEED);
 
         @Override
         long nextKey() {

@@ -15,11 +15,15 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>4.13.1</junit.version>
-        <jmh.version>1.22</jmh.version>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.surefire.version>2.19.1</maven.surefire.version>
+        <junit.jupiter.version>5.11.0</junit.jupiter.version>
+        <jmh.version>1.37</jmh.version>
+        <maven.compiler.source>24</maven.compiler.source>
+        <maven.compiler.target>24</maven.compiler.target>
+		<maven.compiler.release>24</maven.compiler.release>
+        <maven.surefire.version>3.5.0</maven.surefire.version>
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.shade.plugin.version>3.6.0</maven.shade.plugin.version>
+        <pitest.maven.version>1.16.3</pitest.maven.version>
     </properties>
 
     <name>FastFilter</name>
@@ -63,6 +67,12 @@
     </distributionManagement>
 
     <profiles>
+		<profile>
+			<id>artagon-oss-dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
         <profile>
             <id>release-sign-artifacts</id>
             <activation>
@@ -76,7 +86,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
+                        <version>3.3.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -89,7 +99,7 @@
                    <plugin>
                        <groupId>org.apache.maven.plugins</groupId>
                        <artifactId>maven-javadoc-plugin</artifactId>
-                       <version>2.9.1</version>
+                       <version>3.10.1</version>
                        <executions>
                            <execution>
                                <id>attach-javadocs</id>
@@ -102,7 +112,7 @@
                    <plugin>
                        <groupId>org.apache.maven.plugins</groupId>
                        <artifactId>maven-gpg-plugin</artifactId>
-                       <version>1.5</version>
+                       <version>3.2.7</version>
                        <executions>
                            <execution>
                                <id>sign-artifacts</id>
@@ -121,9 +131,9 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.jupiter.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

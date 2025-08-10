@@ -1,12 +1,12 @@
 package org.fastfilter.gcs;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Random;
 
 import org.fastfilter.gcs.BitBuffer;
 import org.fastfilter.gcs.MonotoneList;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the MonotoneList implementations.
@@ -69,7 +69,7 @@ public class MonotoneListTest {
                         MonotoneList list = MonotoneList
                                 .generate(posList, buffer);
                         for (int i = 0; i < posList.length; i++) {
-                            assertEquals("i:" + i, posList[i], list.get(i));
+                            assertEquals(posList[i], list.get(i), "i:" + i);
                         }
                         int len = buffer.position();
                         if (len < bestLen) {
@@ -115,7 +115,7 @@ public class MonotoneListTest {
                 + " old " + oldBits + " (" + entryBits + "*" + bucketCount + ") new " + newBits
                 + " saving " + (oldBits - newBits));
         for (int i = 0; i < bucketCount; i++) {
-            assertEquals("i: " + i, posList2[i], list.get(i));
+            assertEquals(posList2[i], list.get(i), "i: " + i);
         }
         buffer.seek(0);
         list = MonotoneList.load(buffer);

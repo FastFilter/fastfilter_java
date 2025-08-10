@@ -19,7 +19,7 @@ public class CuckooPlus16 implements Filter {
 
     private static final int FINGERPRINT_MASK = (1 << (16 - 2)) - 1;
 
-    private short[] data;
+    private final short[] data;
     private final long seed;
     private final int bucketCount;
     private final Random random = new Random(1);

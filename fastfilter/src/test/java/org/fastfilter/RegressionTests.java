@@ -1,20 +1,18 @@
 package org.fastfilter;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.fastfilter.TestFilterType.*;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
-@RunWith(Parameterized.class)
 public class RegressionTests {
 
 
-    @Parameterized.Parameters(name = "{0}/seed={1}/{3} bits per key")
     public static Object[][] regressionCases() {
         return new Object[][]{
                 {BLOCKED_BLOOM, 872153271794238865L, new long[]{1, 2, 3}, 8},
@@ -59,20 +57,9 @@ public class RegressionTests {
         };
     }
 
-    private final TestFilterType type;
-    private final long seed;
-    private final long[] keys;
-    private final int bitsPerKey;
-
-    public RegressionTests(TestFilterType type, long seed, long[] keys, int bitsPerKey) {
-        this.type = type;
-        this.seed = seed;
-        this.keys = keys;
-        this.bitsPerKey = bitsPerKey;
-    }
-
-    @Test
-    public void regressionTest() {
+    @ParameterizedTest(name = "{0}/seed={1}/{3} bits per key")
+    @MethodSource("regressionCases")
+    public void regressionTest(TestFilterType type, long seed, long[] keys, int bitsPerKey) {
         Hash.setSeed(seed);
         Filter filter = type.construct(keys, bitsPerKey);
         for (long key : keys) {

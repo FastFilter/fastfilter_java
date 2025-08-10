@@ -1,12 +1,12 @@
 package org.fastfilter;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.fastfilter.Filter;
 import org.fastfilter.TestFilterType;
 import org.fastfilter.utils.Hash;
 import org.fastfilter.utils.RandomGenerator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /*
 
@@ -183,7 +183,7 @@ public class TestAllFilters {
             }
             time = System.nanoTime() - time;
             nanosPerRemove = time / len;
-            assertEquals(f.toString(), 0, f.cardinality());
+            assertEquals(0, f.cardinality(), f.toString());
         }
         if (log) {
             System.out.println(type + " fpp: " + fpp +

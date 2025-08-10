@@ -14,8 +14,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
         </dependency>
     </dependencies>
 
@@ -24,7 +24,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>${maven.compiler.plugin.version}</version>
                 <configuration>
                     <fork>true</fork>
                     <source>${maven.compiler.source}</source>
@@ -51,7 +51,7 @@
                 <!-- mvn org.pitest:pitest-maven:mutationCoverage -->
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.4.3</version>
+                <version>${pitest.maven.version}</version>
                 <configuration>
                     <targetClasses>
                         <param>org.fastfilter.gcs.Sort</param>
