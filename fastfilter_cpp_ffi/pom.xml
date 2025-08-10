@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>io.github.fastfilter</groupId>
+        <artifactId>fastfilter_java</artifactId>
+        <version>1.0.3-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>fastfilter-cpp-ffi</artifactId>
+    <packaging>pom</packaging>
+    <name>FastFilter C++ FFI</name>
+    <description>FastFilter C++ Foreign Function Interface integration</description>
+
+    <modules>
+        <module>fastfilter_ffi_java</module>
+        <module>fastfilter_ffi_c</module>
+        <module>native_libs</module>
+    </modules>
+
+    <properties>
+        <native.library.path>${project.basedir}/native_libs</native.library.path>
+    </properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-errorprone</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<!-- OS and architecture detection -->
+			<plugin>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.7.1</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>detect</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<testcontainers.ryuk.disabled>true</testcontainers.ryuk.disabled>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+    <profiles>
+        <!-- Native library build profiles -->
+        <profile>
+            <id>native-libraries</id>
+            <activation>
+                <property>
+                    <name>build.native</name>
+                </property>
+            </activation>
+            <modules>
+                <module>fastfilter_ffi_c</module>
+                <module>native_libs</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>native-cross-compile</id>
+            <activation>
+                <property>
+                    <name>native.cross.compile</name>
+                </property>
+            </activation>
+            <modules>
+                <module>fastfilter_ffi_c</module>
+                <module>native_libs</module>
+            </modules>
+        </profile>
+    </profiles>
+
+
+</project>

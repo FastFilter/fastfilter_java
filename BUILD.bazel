@@ -1,0 +1,121 @@
+package(default_visibility = ["//visibility:public"])
+
+# Root build file for fastfilter_java project
+
+filegroup(
+    name = "all_sources",
+    srcs = glob(["**"]),
+)
+
+# Export project documentation
+exports_files([
+    "README.md",
+    "CLAUDE.md",
+    "docs/CLAUDE.md",
+])
+
+# Individual platform-specific native library packaging rules
+genrule(
+    name = "package_native_libraries_linux_x86_64",
+    srcs = ["@fastfilter_cpp//:fastfilter_cpp_ffi_linux_x86_64.so"],
+    outs = ["native-libs-linux-x86_64.tar.gz"],
+    cmd = """
+        mkdir -p native-libs/linux-x86_64
+        cp $(location @fastfilter_cpp//:fastfilter_cpp_ffi_linux_x86_64.so) native-libs/linux-x86_64/libfastfilter_cpp_ffi.so
+        tar -czf $@ native-libs/
+    """,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+genrule(
+    name = "package_native_libraries_linux_arm64",
+    srcs = ["@fastfilter_cpp//:fastfilter_cpp_ffi_linux_arm64.so"],
+    outs = ["native-libs-linux-arm64.tar.gz"],
+    cmd = """
+        mkdir -p native-libs/linux-arm64
+        cp $(location @fastfilter_cpp//:fastfilter_cpp_ffi_linux_arm64.so) native-libs/linux-arm64/libfastfilter_cpp_ffi.so
+        tar -czf $@ native-libs/
+    """,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:arm64",
+    ],
+)
+
+genrule(
+    name = "package_native_libraries_macos_x86_64",
+    srcs = ["@fastfilter_cpp//:fastfilter_cpp_ffi_macos_x86_64.dylib"],
+    outs = ["native-libs-macos-x86_64.tar.gz"],
+    cmd = """
+        mkdir -p native-libs/macos-x86_64
+        cp $(location @fastfilter_cpp//:fastfilter_cpp_ffi_macos_x86_64.dylib) native-libs/macos-x86_64/libfastfilter_cpp_ffi.dylib
+        tar -czf $@ native-libs/
+    """,
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+genrule(
+    name = "package_native_libraries_macos_arm64",
+    srcs = ["@fastfilter_cpp//:fastfilter_cpp_ffi_macos_arm64.dylib"],
+    outs = ["native-libs-macos-arm64.tar.gz"],
+    cmd = """
+        mkdir -p native-libs/macos-arm64
+        cp $(location @fastfilter_cpp//:fastfilter_cpp_ffi_macos_arm64.dylib) native-libs/macos-arm64/libfastfilter_cpp_ffi.dylib
+        tar -czf $@ native-libs/
+    """,
+    target_compatible_with = [
+        "@platforms//os:macos", 
+        "@platforms//cpu:arm64",
+    ],
+)
+
+genrule(
+    name = "package_native_libraries_windows",
+    srcs = ["@fastfilter_cpp//:fastfilter_cpp_ffi_windows_x86_64.dll"],
+    outs = ["native-libs-windows.tar.gz"],
+    cmd = """
+        mkdir -p native-libs/windows-x86_64
+        cp $(location @fastfilter_cpp//:fastfilter_cpp_ffi_windows_x86_64.dll) native-libs/windows-x86_64/fastfilter_cpp_ffi.dll
+        tar -czf $@ native-libs/
+    """,
+    target_compatible_with = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+# Platform-specific default aliases (no nested selects)
+alias(
+    name = "package_native_libraries_linux_default",
+    actual = select({
+        "@platforms//cpu:x86_64": ":package_native_libraries_linux_x86_64",
+        "@platforms//cpu:arm64": ":package_native_libraries_linux_arm64",
+        "//conditions:default": ":package_native_libraries_linux_x86_64",
+    }),
+)
+
+alias(
+    name = "package_native_libraries_macos_default", 
+    actual = select({
+        "@platforms//cpu:x86_64": ":package_native_libraries_macos_x86_64",
+        "@platforms//cpu:arm64": ":package_native_libraries_macos_arm64",
+        "//conditions:default": ":package_native_libraries_macos_arm64",
+    }),
+)
+
+# Platform-specific alias for current platform
+alias(
+    name = "package_native_libraries",
+    actual = select({
+        "@platforms//os:linux": ":package_native_libraries_linux_default",
+        "@platforms//os:macos": ":package_native_libraries_macos_default",
+        "@platforms//os:windows": ":package_native_libraries_windows",
+        "//conditions:default": ":package_native_libraries_macos_arm64",
+    }),
+)

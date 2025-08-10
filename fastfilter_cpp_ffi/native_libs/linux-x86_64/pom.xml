@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>io.github.fastfilter</groupId>
+        <artifactId>fastfilter-native-libs</artifactId>
+        <version>1.0.3-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>fastfilter-native-linux-x86_64</artifactId>
+    <packaging>jar</packaging>
+    <name>FastFilter Native Library - Linux x86_64</name>
+    <description>Native FastFilter C++ library for Linux x86_64 with AVX2 optimizations</description>
+
+    <properties>
+        <native.platform>linux-x86_64</native.platform>
+        <native.library.name>libfastfilter_cpp_ffi.so</native.library.name>
+        <bazel.target>@fastfilter_cpp//:fastfilter_cpp_ffi_linux_x86_64</bazel.target>
+    </properties>
+
+    <build>
+        <plugins>
+            <!-- Build native library with Bazel -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-native-library</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bazel</executable>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>${bazel.target}.so</argument>
+                                <argument>--verbose_failures</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-native-library</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bash</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>
+                                    mkdir -p ${project.build.outputDirectory}/native/${native.platform} &amp;&amp;
+                                    rm -f ${project.build.outputDirectory}/native/${native.platform}/libfastfilter_cpp_ffi.so &amp;&amp;
+                                    cp ../../../bazel-bin/external/+_repo_rules+fastfilter_cpp/fastfilter_cpp_ffi_linux_x86_64.so ${project.build.outputDirectory}/native/${native.platform}/libfastfilter_cpp_ffi.so
+                                </argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-checksums</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bash</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>
+                                    # Generate SHA-256 checksum for the native library
+                                    cd ${project.build.outputDirectory}/native/${native.platform} &amp;&amp;
+                                    sha256sum libfastfilter_cpp_ffi.so > libfastfilter_cpp_ffi.so.sha256 &amp;&amp;
+                                    echo "Generated SHA-256 checksum for ${native.platform}:" &amp;&amp;
+                                    cat libfastfilter_cpp_ffi.so.sha256
+                                </argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Create platform-specific classifier JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <executions>
+                    <!-- Main JAR (empty but required) -->
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <!-- Platform-specific JAR with classifier -->
+                    <execution>
+                        <id>native-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>${native.platform}</classifier>
+                            <includes>
+                                <include>native/${native.platform}/**</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,67 @@
+# FastFilter Java - Bazel Configuration
+# This file can be customized with .bazelrc.local for local overrides
+# Environment variables from .env files are automatically loaded
+
+# JDK configuration - use local JDK (24) with language level 21 for compatibility
+build --java_language_version=21
+build --tool_java_language_version=21
+test --java_language_version=21
+
+# Use local JDK runtime (JDK 24)
+build --java_runtime_version=local_jdk
+build --tool_java_runtime_version=local_jdk
+
+# Enable JDK 24 preview features for FFI
+build --jvmopt="--enable-preview"
+build --jvmopt="--enable-native-access=ALL-UNNAMED" 
+test --jvmopt="--enable-preview"
+test --jvmopt="--enable-native-access=ALL-UNNAMED"
+
+# Performance optimizations
+build --compilation_mode=opt
+build -c opt
+
+# Platform-specific C++ optimizations
+# x86_64 with AVX2 support
+build:linux-x86_64 --cpu=k8 --copt=-mavx2 --copt=-O3 --copt=-march=native
+build:macos-x86_64 --cpu=darwin_x86_64 --copt=-mavx2 --copt=-O3 --copt=-march=native --macos_minimum_os=10.15
+build:windows-x86_64 --cpu=x64_windows --copt=/O2 --copt=/arch:AVX2
+
+# ARM64 optimizations (no AVX2)
+build:linux-arm64 --cpu=aarch64 --copt=-O3 --copt=-march=native
+build:macos-arm64 --cpu=darwin_arm64 --copt=-O3 --copt=-march=native --macos_minimum_os=11.0
+
+# Legacy platform configs (fallback to x86_64)
+build:linux --config=linux-x86_64
+build:macos --config=macos-arm64  # Default to ARM64 for modern Macs
+build:windows --config=windows-x86_64
+
+# Test configuration
+test --test_output=errors
+test --test_summary=detailed
+
+# Use Bzlmod (default in Bazel 8+)
+common --enable_bzlmod=true
+
+# Build verbosity
+build --show_timestamps
+build --announce_rc
+
+# Environment variable integration
+# These can be overridden in .env files
+build --action_env=CC
+build --action_env=CXX
+build --action_env=CFLAGS
+build --action_env=CXXFLAGS
+build --action_env=LDFLAGS
+build --action_env=LIBRARY_PATH
+build --action_env=PKG_CONFIG_PATH
+
+# Remote cache and execution (controlled by .env)
+# Uncomment and set BAZEL_REMOTE_CACHE in .env to enable
+# build --remote_cache=${BAZEL_REMOTE_CACHE}
+# build --disk_cache=${BAZEL_DISK_CACHE}
+# build --repository_cache=${BAZEL_REPOSITORY_CACHE}
+
+# Local user overrides (not tracked in git)
+try-import %workspace%/.bazelrc.local

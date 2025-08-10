@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>io.github.fastfilter</groupId>
+        <artifactId>fastfilter-native-libs</artifactId>
+        <version>1.0.3-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>fastfilter-native-windows-x86_64</artifactId>
+    <packaging>jar</packaging>
+    <name>FastFilter Native Library - Windows x86_64</name>
+    <description>Native FastFilter C++ library for Windows x86_64 with AVX2 optimizations</description>
+
+    <properties>
+        <native.platform>windows-x86_64</native.platform>
+        <native.library.name>fastfilter_cpp_ffi.dll</native.library.name>
+        <bazel.target>@fastfilter_cpp//:fastfilter_cpp_ffi_windows_x86_64</bazel.target>
+    </properties>
+
+    <build>
+        <plugins>
+            <!-- Build native library with Bazel -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-native-library</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bazel</executable>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>${bazel.target}.dll</argument>
+                                <argument>--verbose_failures</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-native-library</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bash</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>
+                                    mkdir -p ${project.build.outputDirectory}/native/${native.platform} &amp;&amp;
+                                    rm -f ${project.build.outputDirectory}/native/${native.platform}/fastfilter_cpp_ffi.dll &amp;&amp;
+                                    cp ../../../bazel-bin/external/+_repo_rules+fastfilter_cpp/fastfilter_cpp_ffi_windows_x86_64.dll ${project.build.outputDirectory}/native/${native.platform}/fastfilter_cpp_ffi.dll
+                                </argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-checksums</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>bash</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>
+                                    # Generate SHA-256 checksum for the native library (Windows)
+                                    cd ${project.build.outputDirectory}/native/${native.platform} &amp;&amp;
+                                    if command -v sha256sum >/dev/null 2>&amp;1; then
+                                        sha256sum fastfilter_cpp_ffi.dll > fastfilter_cpp_ffi.dll.sha256
+                                    elif command -v shasum >/dev/null 2>&amp;1; then
+                                        shasum -a 256 fastfilter_cpp_ffi.dll > fastfilter_cpp_ffi.dll.sha256
+                                    else
+                                        echo "No SHA-256 tool available"
+                                        exit 1
+                                    fi &amp;&amp;
+                                    echo "Generated SHA-256 checksum for ${native.platform}:" &amp;&amp;
+                                    cat fastfilter_cpp_ffi.dll.sha256
+                                </argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Create platform-specific classifier JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <executions>
+                    <!-- Main JAR (empty but required) -->
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <!-- Platform-specific JAR with classifier -->
+                    <execution>
+                        <id>native-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>${native.platform}</classifier>
+                            <includes>
+                                <include>native/${native.platform}/**</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

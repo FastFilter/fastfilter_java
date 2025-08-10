@@ -1,0 +1,256 @@
+name: PR Build and Test
+
+on:
+  pull_request:
+    branches: [ master, main ]
+  push:
+    branches: [ master, main ]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        java: [24]
+        include:
+          - os: ubuntu-latest
+            platform: linux-x86_64
+          - os: macos-latest
+            platform: macos-x86_64
+          - os: windows-latest
+            platform: windows-x86_64
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Set up Bazel
+      uses: bazelbuild/setup-bazelisk@v2
+      with:
+        bazelisk-version: latest
+    
+    - name: Cache Bazel
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel
+          ~/.cache/bazelisk
+        key: ${{ runner.os }}-bazel-${{ hashFiles('MODULE.bazel', 'MODULE.bazel.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-
+    
+    - name: Build with Maven
+      run: mvn clean compile -B
+    
+    - name: Run tests
+      run: mvn test -B
+    
+    - name: Build native libraries
+      run: mvn package -Pnative-libraries -Dbuild.native=true -B
+    
+    - name: Run JMH benchmarks (sample)
+      run: |
+        cd jmh
+        mvn clean package -B
+        java -jar target/benchmarks.jar -f 1 -wi 1 -i 3 -t 1 -foe true org.fastfilter.ConstructionBenchmark
+    
+    - name: Upload native artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-libs-${{ matrix.platform }}-jdk${{ matrix.java }}
+        path: fastfilter_cpp_ffi/native_libs/*/target/*-${{ matrix.platform }}.jar
+
+  build-native-all-platforms:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 24
+      uses: actions/setup-java@v4
+      with:
+        java-version: '24'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Set up Bazel
+      uses: bazelbuild/setup-bazelisk@v2
+      with:
+        bazelisk-version: latest
+    
+    - name: Cache Bazel
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel
+          ~/.cache/bazelisk
+        key: ${{ runner.os }}-bazel-cross-${{ hashFiles('MODULE.bazel', 'MODULE.bazel.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-cross-
+    
+    - name: Install cross-compilation tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 gcc-multilib g++-multilib gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+    
+    - name: Build all native libraries (cross-compile)
+      run: mvn package -Pnative-cross-compile -Dnative.cross.compile=true -B
+    
+    - name: Upload cross-compiled artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-libs-all-platforms
+        path: fastfilter_cpp_ffi/native_libs/*/target/*.jar
+
+  build-native-linux-arm64:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up QEMU for ARM64 emulation
+      uses: docker/setup-qemu-action@v3
+    
+    - name: Build Linux ARM64 native library using Docker
+      run: |
+        docker run --rm --platform linux/arm64 \
+          -v $PWD:/workspace \
+          -w /workspace \
+          eclipse-temurin:24-jdk \
+          bash -c "
+            apt-get update && apt-get install -y wget unzip build-essential
+            wget https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-arm64 -O /usr/local/bin/bazel
+            chmod +x /usr/local/bin/bazel
+            ./mvnw package -Pnative-linux-arm64 -Dbuild.native=true -B
+          "
+    
+    - name: Upload Linux ARM64 artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-libs-linux-arm64
+        path: fastfilter_cpp_ffi/native_libs/linux-arm64/target/*.jar
+
+  cpp-benchmarks:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        benchmark: [bulk_insert_and_query, stream, construction_failure]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Bazel
+      uses: bazelbuild/setup-bazelisk@v2
+      with:
+        bazelisk-version: latest
+    
+    - name: Cache Bazel
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel
+          ~/.cache/bazelisk
+        key: ${{ runner.os }}-bazel-cpp-${{ hashFiles('MODULE.bazel', 'MODULE.bazel.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-cpp-
+    
+    - name: Build C++ benchmark
+      run: bazel build @fastfilter_cpp//:${{ matrix.benchmark }}
+    
+    - name: Run C++ benchmark
+      run: |
+        if [ "${{ matrix.benchmark }}" = "bulk_insert_and_query" ]; then
+          bazel run @fastfilter_cpp//:${{ matrix.benchmark }} -- 100000
+        else
+          bazel run @fastfilter_cpp//:${{ matrix.benchmark }}
+        fi
+    
+    - name: Save benchmark results
+      if: always()
+      run: |
+        mkdir -p benchmark-results
+        if [ "${{ matrix.benchmark }}" = "bulk_insert_and_query" ]; then
+          bazel run @fastfilter_cpp//:${{ matrix.benchmark }} -- 100000 > benchmark-results/${{ matrix.benchmark }}-${{ matrix.os }}.txt 2>&1
+        else
+          bazel run @fastfilter_cpp//:${{ matrix.benchmark }} > benchmark-results/${{ matrix.benchmark }}-${{ matrix.os }}.txt 2>&1
+        fi
+    
+    - name: Upload benchmark results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpp-benchmark-${{ matrix.benchmark }}-${{ matrix.os }}
+        path: benchmark-results/
+
+  java-benchmarks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 24
+      uses: actions/setup-java@v4
+      with:
+        java-version: '24'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Build JMH benchmarks
+      run: |
+        cd jmh
+        mvn clean package -B
+    
+    - name: Run comprehensive benchmarks
+      run: |
+        cd jmh
+        java -jar target/benchmarks.jar -f 1 -wi 2 -i 5 -t 2 -rf json -rff benchmark-results.json
+    
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: java-benchmark-results
+        path: jmh/benchmark-results.json
+
+  integration-test:
+    needs: [build-and-test, build-native-all-platforms, build-native-linux-arm64]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 24
+      uses: actions/setup-java@v4
+      with:
+        java-version: '24'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Download native artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: native-libs-*
+        merge-multiple: true
+    
+    - name: Run integration tests with native libraries
+      run: |
+        # Install native libraries to local maven repo
+        find . -name "*native*.jar" -exec mvn install:install-file -Dfile={} -DgroupId=io.github.fastfilter -DartifactId=$(basename {} .jar) -Dversion=1.0.3-SNAPSHOT -Dpackaging=jar \;
+        
+        # Run tests with native libraries
+        mvn test -Dtest=TestAllFilters -Djava.library.path=./fastfilter_cpp_ffi/native_libs --enable-preview --enable-native-access=ALL-UNNAMED -B

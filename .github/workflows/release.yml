@@ -1,0 +1,179 @@
+name: Release Build
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+
+jobs:
+  build-native-libraries:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-x86_64
+            bazel_platform: "@platforms//os:linux"
+            bazel_cpu: "k8"
+          - os: ubuntu-latest
+            platform: linux-arm64
+            bazel_platform: "@platforms//os:linux"
+            bazel_cpu: "aarch64"
+            docker_build: true
+          - os: macos-latest
+            platform: macos-x86_64
+            bazel_platform: "@platforms//os:macos"
+            bazel_cpu: "darwin_x86_64"
+          - os: macos-latest
+            platform: macos-arm64
+            bazel_platform: "@platforms//os:macos"
+            bazel_cpu: "darwin_arm64"
+            runs-on: macos-14  # M1 runner
+          - os: windows-latest
+            platform: windows-x86_64
+            bazel_platform: "@platforms//os:windows"
+            bazel_cpu: "x64_windows"
+    
+    runs-on: ${{ matrix.runs-on || matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 24
+      uses: actions/setup-java@v4
+      with:
+        java-version: '24'
+        distribution: 'temurin'
+
+    - name: Set up Bazel
+      uses: bazelbuild/setup-bazelisk@v2
+      with:
+        bazelisk-version: latest
+    
+    - name: Cache Bazel
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel
+          ~/.cache/bazelisk
+        key: ${{ runner.os }}-bazel-release-${{ matrix.platform }}-${{ hashFiles('MODULE.bazel', 'MODULE.bazel.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-release-${{ matrix.platform }}-
+    
+    - name: Set up QEMU for ARM64 emulation
+      if: matrix.docker_build == true
+      uses: docker/setup-qemu-action@v3
+
+    - name: Build native library (Docker ARM64)
+      if: matrix.docker_build == true
+      run: |
+        docker run --rm --platform linux/arm64 \
+          -v $PWD:/workspace \
+          -w /workspace \
+          eclipse-temurin:24-jdk \
+          bash -c "
+            apt-get update && apt-get install -y wget unzip build-essential
+            wget https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-arm64 -O /usr/local/bin/bazel
+            chmod +x /usr/local/bin/bazel
+            bazel build @fastfilter_cpp//:fastfilter_cpp_ffi_${{ matrix.platform }} \
+              --compilation_mode=opt \
+              --verbose_failures
+          "
+
+    - name: Build native library (Native)
+      if: matrix.docker_build != true
+      run: |
+        bazel build @fastfilter_cpp//:fastfilter_cpp_ffi_${{ matrix.platform }} \
+          --platforms=${{ matrix.bazel_platform }} \
+          --cpu=${{ matrix.bazel_cpu }} \
+          --compilation_mode=opt \
+          --verbose_failures
+    
+    - name: Package native library
+      run: |
+        mkdir -p native-libs/${{ matrix.platform }}
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          cp bazel-bin/external/+_repo_rules+fastfilter_cpp/fastfilter_cpp_ffi_${{ matrix.platform }}.dll native-libs/${{ matrix.platform }}/fastfilter_cpp_ffi.dll
+        elif [[ "${{ matrix.platform }}" == linux-* ]]; then
+          cp bazel-bin/external/+_repo_rules+fastfilter_cpp/fastfilter_cpp_ffi_${{ matrix.platform }}.so native-libs/${{ matrix.platform }}/libfastfilter_cpp_ffi.so
+        else
+          cp bazel-bin/external/+_repo_rules+fastfilter_cpp/fastfilter_cpp_ffi_${{ matrix.platform }}.dylib native-libs/${{ matrix.platform }}/libfastfilter_cpp_ffi.dylib
+        fi
+    
+    - name: Upload native library
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-lib-${{ matrix.platform }}
+        path: native-libs/${{ matrix.platform }}
+
+  build-and-release:
+    needs: build-native-libraries
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 24
+      uses: actions/setup-java@v4
+      with:
+        java-version: '24'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Download all native libraries
+      uses: actions/download-artifact@v4
+      with:
+        pattern: native-lib-*
+        path: native-libs-artifacts/
+    
+    - name: Organize native libraries
+      run: |
+        mkdir -p native-libs
+        cp -r native-libs-artifacts/native-lib-*/* native-libs/
+    
+    - name: Set version
+      run: |
+        VERSION=${{ github.event.inputs.version || github.event.release.tag_name }}
+        mvn versions:set -DnewVersion=${VERSION} -B
+    
+    - name: Build all modules
+      run: mvn clean package -PperformRelease=true -B
+    
+    - name: Run full test suite
+      run: mvn verify -B
+    
+    - name: Build native JARs
+      run: |
+        for platform in linux-x86_64 linux-arm64 macos-x86_64 macos-arm64 windows-x86_64; do
+          mkdir -p fastfilter_cpp_ffi/native_libs/${platform}/target/classes/native/${platform}
+          cp -r fastfilter_cpp_ffi/native_libs/${platform}/* fastfilter_cpp_ffi/native_libs/${platform}/target/classes/native/${platform}/ || true
+          cd fastfilter_cpp_ffi/native_libs/${platform}
+          jar -cf ../fastfilter-native-${platform}-${VERSION}.jar -C target/classes .
+          cd ../../..
+        done
+    
+    - name: Deploy to Maven Central
+      if: github.event_name == 'release'
+      env:
+        MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      run: |
+        mvn deploy -PperformRelease=true -B \
+          -Dgpg.passphrase=${GPG_PASSPHRASE} \
+          -DskipTests
+    
+    - name: Upload release artifacts
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          target/*.jar
+          fastfilter_cpp_ffi/native_libs/*.jar
+          jmh/target/benchmarks.jar

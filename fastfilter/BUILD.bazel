@@ -1,0 +1,211 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_java//java:defs.bzl", "java_library", "java_test")
+
+# Main FastFilter library (without C++ integration)
+java_library(
+    name = "fastfilter",
+    srcs = glob(["src/main/java/**/*.java"], exclude = ["src/main/java/org/fastfilter/cpp/**"]),
+    deps = [],
+    resource_strip_prefix = "fastfilter/src/main/resources",
+    resources = glob(["src/main/resources/**"], allow_empty = True),
+)
+
+# FastFilter library with C++ integration (requires JDK 24 with preview features)
+java_library(
+    name = "fastfilter_with_cpp",
+    srcs = glob(["src/main/java/**/*.java"]),
+    deps = [],
+    data = ["@fastfilter_cpp//:fastfilter_cpp_ffi"],
+    resource_strip_prefix = "fastfilter/src/main/resources",
+    resources = glob(["src/main/resources/**"], allow_empty = True),
+    javacopts = ["--enable-preview", "--release", "24"],
+    tags = ["manual"],  # Don't build by default due to JDK 24 requirement
+)
+
+# All test sources
+filegroup(
+    name = "test_sources",
+    srcs = glob(["src/test/java/**/*.java"]),
+)
+
+# Individual test targets for better parallelization
+java_test(
+    name = "RegressionTests",
+    test_class = "org.fastfilter.RegressionTests",
+    srcs = [
+        "src/test/java/org/fastfilter/RegressionTests.java",
+        "src/test/java/org/fastfilter/TestFilterType.java",
+    ],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_jupiter_junit_jupiter_params",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+java_test(
+    name = "TestAllFilters",
+    test_class = "org.fastfilter.TestAllFilters",
+    srcs = [
+        "src/test/java/org/fastfilter/TestAllFilters.java",
+        "src/test/java/org/fastfilter/TestFilterType.java",
+        "src/test/java/org/fastfilter/utils/RandomGenerator.java",
+    ],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+# XOR filter tests
+java_test(
+    name = "SmallSetTest",
+    test_class = "org.fastfilter.xor.SmallSetTest",
+    srcs = ["src/test/java/org/fastfilter/xor/SmallSetTest.java"],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+# XOR Plus filter tests  
+java_test(
+    name = "xorplus_SmallSetTest",
+    test_class = "org.fastfilter.xorplus.SmallSetTest",
+    srcs = ["src/test/java/org/fastfilter/xorplus/SmallSetTest.java"],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+java_test(
+    name = "Rank9Test",
+    test_class = "org.fastfilter.xorplus.Rank9Test",
+    srcs = ["src/test/java/org/fastfilter/xorplus/Rank9Test.java"],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+# Bloom filter tests
+java_test(
+    name = "TestBitField",
+    test_class = "org.fastfilter.bloom.count.TestBitField",
+    srcs = ["src/test/java/org/fastfilter/bloom/count/TestBitField.java"],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+# GCS tests
+java_test(
+    name = "BitBufferTest",
+    test_class = "org.fastfilter.gcs.BitBufferTest",
+    srcs = ["src/test/java/org/fastfilter/gcs/BitBufferTest.java"],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+java_test(
+    name = "MonotoneListTest",
+    test_class = "org.fastfilter.gcs.MonotoneListTest",
+    srcs = ["src/test/java/org/fastfilter/gcs/MonotoneListTest.java"],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+java_test(
+    name = "MonotoneListTest2",
+    test_class = "org.fastfilter.gcs.MonotoneListTest2",
+    srcs = ["src/test/java/org/fastfilter/gcs/MonotoneListTest2.java"],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+java_test(
+    name = "SortTest",
+    test_class = "org.fastfilter.gcs.SortTest",
+    srcs = ["src/test/java/org/fastfilter/gcs/SortTest.java"],
+    deps = [
+        ":fastfilter",
+        "@maven//:org_junit_jupiter_junit_jupiter_api",
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+    ],
+    runtime_deps = [
+        "@maven//:org_junit_jupiter_junit_jupiter_engine",
+        "@maven//:org_junit_platform_junit_platform_launcher",
+    ],
+)
+
+# Test suite combining all tests
+test_suite(
+    name = "all_tests",
+    tests = [
+        ":RegressionTests",
+        ":TestAllFilters", 
+        ":SmallSetTest",
+        ":xorplus_SmallSetTest",
+        ":Rank9Test",
+        ":TestBitField",
+        ":BitBufferTest",
+        ":MonotoneListTest",
+        ":MonotoneListTest2",
+        ":SortTest",
+    ],
+)

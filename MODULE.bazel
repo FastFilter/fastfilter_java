@@ -1,0 +1,51 @@
+module(
+    name = "fastfilter_java",
+    version = "1.0.3",
+)
+
+# Java rules for compilation and testing
+bazel_dep(name = "rules_java", version = "8.12.0")
+bazel_dep(name = "rules_jvm_external", version = "6.5")
+
+# C++ rules for native compilation  
+bazel_dep(name = "rules_cc", version = "0.1.1")
+
+# Platform detection
+bazel_dep(name = "platforms", version = "0.0.11")
+
+# Maven dependency management
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+
+maven.install(
+    artifacts = [
+        # JUnit 5
+        "org.junit.jupiter:junit-jupiter-api:5.11.0",
+        "org.junit.jupiter:junit-jupiter-engine:5.11.0", 
+        "org.junit.jupiter:junit-jupiter-params:5.11.0",
+        "org.junit.platform:junit-platform-runner:1.11.0",
+        "org.junit.platform:junit-platform-launcher:1.11.0",
+        
+        # JMH
+        "org.openjdk.jmh:jmh-core:1.37",
+        "org.openjdk.jmh:jmh-generator-annprocess:1.37",
+        
+        # Test utilities
+        "org.apiguardian:apiguardian-api:1.1.2",
+    ],
+    repositories = [
+        "https://repo1.maven.org/maven2",
+        "https://oss.sonatype.org/content/repositories/snapshots",
+    ],
+)
+
+use_repo(maven, "maven")
+
+# External fastfilter_cpp repository
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "fastfilter_cpp",
+    urls = ["https://github.com/FastFilter/fastfilter_cpp/archive/refs/heads/master.zip"],
+    strip_prefix = "fastfilter_cpp-master",
+    build_file = "@//bazel:fastfilter_cpp.BUILD",
+)

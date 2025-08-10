@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>io.github.fastfilter</groupId>
+        <artifactId>fastfilter-cpp-ffi</artifactId>
+        <version>1.0.3-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>fastfilter-ffi-c</artifactId>
+    <packaging>jar</packaging>
+    <name>FastFilter FFI C Functions</name>
+    <description>C Foreign Function Interface wrappers for FastFilter C++ library</description>
+
+    <properties>
+        <c.source.directory>${project.basedir}/src/main/c</c.source.directory>
+        <include.headers.directory>${project.basedir}/src/main/headers</include.headers.directory>
+    </properties>
+
+    <build>
+        <plugins>
+            <!-- Create sources JAR for C files -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/*.c</include>
+                                <include>**/*.h</include>
+                                <include>**/*.txt</include>
+                            </includes>
+                            <classesDirectory>${c.source.directory}</classesDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>sources-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>sources</classifier>
+                            <includes>
+                                <include>**/*.c</include>
+                                <include>**/*.h</include>
+                                <include>**/*.txt</include>
+                            </includes>
+                            <classesDirectory>${c.source.directory}</classesDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Install plugin to ensure proper install -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.3</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,101 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+
+# JMH benchmark library
+java_library(
+    name = "jmh_benchmarks",
+    srcs = glob(["src/main/java/**/*.java"]),
+    deps = [
+        "//fastfilter:fastfilter",  # Use basic version for now
+        "@maven//:org_openjdk_jmh_jmh_core",
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+    ],
+    plugins = [":jmh_annotation_processor"],
+)
+
+# JMH annotation processor
+java_plugin(
+    name = "jmh_annotation_processor",
+    processor_class = "org.openjdk.jmh.generators.BenchmarkProcessor",
+    deps = [
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+    ],
+)
+
+# Executable benchmark runner
+java_binary(
+    name = "comprehensive_benchmark",
+    main_class = "org.openjdk.jmh.Main",
+    args = [
+        "org.fastfilter.ComprehensiveFilterBenchmark",
+        "-rf", "json",
+        "-rff", "comprehensive_benchmark_results.json",
+    ],
+    runtime_deps = [
+        ":jmh_benchmarks",
+        "@maven//:org_openjdk_jmh_jmh_core",
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+    ],
+)
+
+java_binary(
+    name = "xor_scaling_benchmark", 
+    main_class = "org.openjdk.jmh.Main",
+    args = [
+        "org.fastfilter.XorBinaryFuseScalingBenchmark",
+        "-rf", "json", 
+        "-rff", "xor_scaling_benchmark_results.json",
+    ],
+    runtime_deps = [
+        ":jmh_benchmarks",
+        "@maven//:org_openjdk_jmh_jmh_core",
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+    ],
+)
+
+java_binary(
+    name = "fuzz_benchmark",
+    main_class = "org.openjdk.jmh.Main", 
+    args = [
+        "org.fastfilter.FuzzTestBenchmark",
+        "-rf", "json",
+        "-rff", "fuzz_benchmark_results.json",
+    ],
+    runtime_deps = [
+        ":jmh_benchmarks",
+        "@maven//:org_openjdk_jmh_jmh_core",
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+    ],
+)
+
+java_binary(
+    name = "java_vs_cpp_benchmark",
+    main_class = "org.openjdk.jmh.Main",
+    args = [
+        "org.fastfilter.JavaVsCppBenchmark",
+        "-rf", "json",
+        "-rff", "java_vs_cpp_benchmark_results.json",
+    ],
+    runtime_deps = [
+        ":jmh_benchmarks",
+        "@maven//:org_openjdk_jmh_jmh_core",
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+    ],
+)
+
+# Run all benchmarks
+java_binary(
+    name = "all_benchmarks",
+    main_class = "org.openjdk.jmh.Main",
+    args = [
+        ".*",
+        "-rf", "json",
+        "-rff", "all_benchmark_results.json",
+    ],
+    runtime_deps = [
+        ":jmh_benchmarks",
+        "@maven//:org_openjdk_jmh_jmh_core",
+        "@maven//:org_openjdk_jmh_jmh_generator_annprocess",
+    ],
+)

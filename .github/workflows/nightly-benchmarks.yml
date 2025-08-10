@@ -1,0 +1,205 @@
+name: Nightly Benchmarks
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run at 2 AM UTC every day
+  workflow_dispatch:
+
+jobs:
+  comprehensive-benchmarks:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux-x86_64
+          - os: macos-latest  
+            platform: macos-x86_64
+          - os: windows-latest
+            platform: windows-x86_64
+        java: [24]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Set up Bazel
+      uses: bazelbuild/setup-bazelisk@v2
+      with:
+        bazelisk-version: latest
+    
+    - name: Cache Bazel
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel
+          ~/.cache/bazelisk
+        key: ${{ runner.os }}-bazel-bench-${{ hashFiles('MODULE.bazel', 'MODULE.bazel.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-bazel-bench-
+    
+    - name: Build project
+      run: mvn clean package -DskipTests -B
+    
+    - name: Build native libraries
+      run: mvn package -Pnative-libraries -Dbuild.native=true -DskipTests -B
+    
+    - name: Run Java benchmarks
+      run: |
+        cd jmh
+        mvn clean package -B
+        java -jar target/benchmarks.jar -f 3 -wi 5 -i 10 -t 4 -rf json -rff benchmark-results-${{ matrix.os }}-jdk${{ matrix.java }}.json
+    
+    - name: Run C++ benchmarks
+      if: matrix.os != 'windows-latest'
+      run: |
+        # Run bulk insert and query benchmark
+        bazel run @fastfilter_cpp//:bulk_insert_and_query -- 1000000 > cpp-bench-bulk-${{ matrix.os }}.txt
+        
+        # Run stream benchmark
+        bazel run @fastfilter_cpp//:stream > cpp-bench-stream-${{ matrix.os }}.txt
+        
+        # Run construction failure benchmark
+        bazel run @fastfilter_cpp//:construction_failure > cpp-bench-construction-${{ matrix.os }}.txt
+    
+    - name: Analyze results
+      run: |
+        echo "=== Benchmark Summary ===" > summary.txt
+        echo "Platform: ${{ matrix.os }}" >> summary.txt
+        echo "Java Version: ${{ matrix.java }}" >> summary.txt
+        echo "Date: $(date)" >> summary.txt
+        
+        if [ -f "jmh/benchmark-results-${{ matrix.os }}-jdk${{ matrix.java }}.json" ]; then
+          echo "=== Java Benchmark Highlights ===" >> summary.txt
+          # Extract key metrics from JSON (simplified)
+          cat jmh/benchmark-results-${{ matrix.os }}-jdk${{ matrix.java }}.json | grep -E '"benchmark"|"primaryMetric"' | head -20 >> summary.txt
+        fi
+        
+        if [ -f "cpp-bench-bulk-${{ matrix.os }}.txt" ]; then
+          echo "=== C++ Benchmark Highlights ===" >> summary.txt
+          tail -20 cpp-bench-bulk-${{ matrix.os }}.txt >> summary.txt
+        fi
+    
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results-${{ matrix.os }}-jdk${{ matrix.java }}
+        path: |
+          jmh/benchmark-results-*.json
+          cpp-bench-*.txt
+          summary.txt
+    
+    - name: Store benchmark results
+      uses: benchmark-action/github-action-benchmark@v1
+      if: matrix.os == 'ubuntu-latest' && matrix.java == '24'
+      with:
+        tool: 'jmh'
+        output-file-path: jmh/benchmark-results-${{ matrix.os }}-jdk${{ matrix.java }}.json
+        benchmark-data-dir-path: 'benchmarks'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        auto-push: true
+        comment-on-alert: true
+        alert-threshold: '150%'
+        fail-on-alert: false
+
+  linux-arm64-benchmarks:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        java: [24]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up QEMU for ARM64 emulation
+      uses: docker/setup-qemu-action@v3
+    
+    - name: Run Linux ARM64 benchmarks using Docker
+      run: |
+        docker run --rm --platform linux/arm64 \
+          -v $PWD:/workspace \
+          -w /workspace \
+          eclipse-temurin:${{ matrix.java }}-jdk \
+          bash -c "
+            apt-get update && apt-get install -y wget unzip build-essential
+            wget https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-arm64 -O /usr/local/bin/bazel
+            chmod +x /usr/local/bin/bazel
+            
+            # Build project
+            ./mvnw clean package -DskipTests -B
+            
+            # Build native libraries  
+            ./mvnw package -Pnative-linux-arm64 -Dbuild.native=true -DskipTests -B
+            
+            # Run Java benchmarks
+            cd jmh
+            ../mvnw clean package -B
+            java -jar target/benchmarks.jar -f 1 -wi 2 -i 5 -t 2 -rf json -rff benchmark-results-linux-arm64-jdk${{ matrix.java }}.json
+            
+            # Run C++ benchmarks
+            cd ..
+            bazel run @fastfilter_cpp//:bulk_insert_and_query -- 100000 > cpp-bench-bulk-linux-arm64.txt || echo 'C++ benchmark failed' > cpp-bench-bulk-linux-arm64.txt
+            bazel run @fastfilter_cpp//:stream > cpp-bench-stream-linux-arm64.txt || echo 'Stream benchmark failed' > cpp-bench-stream-linux-arm64.txt
+            bazel run @fastfilter_cpp//:construction_failure > cpp-bench-construction-linux-arm64.txt || echo 'Construction benchmark failed' > cpp-bench-construction-linux-arm64.txt
+          "
+    
+    - name: Upload Linux ARM64 benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results-linux-arm64-jdk${{ matrix.java }}
+        path: |
+          jmh/benchmark-results-*.json
+          cpp-bench-*linux-arm64.txt
+
+  performance-regression-check:
+    needs: [comprehensive-benchmarks, linux-arm64-benchmarks]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download all benchmark results
+      uses: actions/download-artifact@v4
+      with:
+        pattern: benchmark-results-*
+        path: all-benchmarks/
+    
+    - name: Analyze for regressions
+      run: |
+        echo "=== Performance Regression Analysis ===" > regression-report.txt
+        echo "Date: $(date)" >> regression-report.txt
+        
+        # Simple analysis - in production, you'd compare with historical data
+        for file in all-benchmarks/*/summary.txt; do
+          echo "--- $(basename $(dirname $file)) ---" >> regression-report.txt
+          cat $file >> regression-report.txt
+          echo "" >> regression-report.txt
+        done
+    
+    - name: Create issue if regression detected
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('regression-report.txt', 'utf8');
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Performance Regression Detected - ${new Date().toISOString().split('T')[0]}`,
+            body: `## Performance Regression Report\n\n\`\`\`\n${report}\n\`\`\``,
+            labels: ['performance', 'regression']
+          });

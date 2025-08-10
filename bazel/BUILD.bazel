@@ -1,0 +1,5 @@
+# Bazel external dependencies configuration
+package(default_visibility = ["//visibility:public"])
+
+# Export the external fastfilter_cpp BUILD file
+exports_files(["fastfilter_cpp.BUILD"])
