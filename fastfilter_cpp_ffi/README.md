@@ -1,17 +1,17 @@
-# Native Library Loader with Platform-Specific LibC Detection
+# FastFilter C++ FFI Integration
 
-A high-performance, cross-platform native library loader for JDK 24's Foreign Function & Memory API with comprehensive LibC detection and architecture-specific configuration support.
+High-performance Java bindings for the FastFilter C++ library using JDK 24's Foreign Function & Memory API with comprehensive platform detection and cross-platform testing support.
 
 ## 🚀 Features
 
-- **Singleton Pattern**: Thread-safe global instance for library management
-- **Multi-Architecture Support**: x86_64, ARM64, ARMv7, RISC-V64, s390x, PowerPC64
-- **LibC Detection**: Automatic detection of glibc, musl, uClibc, Bionic, Darwin, MSVCRT
-- **Platform Intelligence**: Architecture-specific library paths and naming conventions
-- **Environment Configuration**: Flexible configuration via environment variables, properties, and config files
-- **Resource Extraction**: Embedded native libraries in JAR with checksums
-- **QEMU Testing**: Cross-platform testing without physical hardware
-- **CI/CD Ready**: Full GitHub Actions integration
+- **FastFilter C++ Integration**: Native XOR8 and Binary Fuse8 filter implementations
+- **JDK 24 FFI**: Full Foreign Function & Memory API integration with preview features
+- **Multi-Architecture Support**: x86_64, ARM64 (Apple Silicon), ARMv7, RISC-V64, s390x, PowerPC64
+- **LibC Detection**: Automatic detection of glibc, musl, uClibc, Bionic, Darwin libc, MSVCRT
+- **Cross-Platform Testing**: QEMU, Docker, and Testcontainers integration for all platforms
+- **JUnit 5 Ready**: Modern test framework with parameterized cross-platform tests
+- **Bazel Build System**: Optimized C++ builds with ARM64/x86_64 architecture support
+- **CI/CD Ready**: Full GitHub Actions integration with nightly benchmarks
 
 ## 📋 Table of Contents
 
@@ -34,39 +34,58 @@ A high-performance, cross-platform native library loader for JDK 24's Foreign Fu
 #### Maven
 ```xml
 <dependency>
-    <groupId>com.example</groupId>
-    <artifactId>native-library-loader</artifactId>
-    <version>1.0.0</version>
+    <groupId>io.github.fastfilter</groupId>
+    <artifactId>fastfilter-ffi-java</artifactId>
+    <version>1.0.3-SNAPSHOT</version>
 </dependency>
 ```
 
-#### Homebrew (macOS)
-```bash
-# Install the library and development tools
-brew tap example/native-library-loader
-brew install native-library-loader
-
-# Or install directly from formula
-brew install --HEAD https://raw.githubusercontent.com/example/native-library-loader/main/Formula/native-library-loader.rb
-```
+#### Requirements
+- **JDK 24**: Required for Foreign Function & Memory API
+- **Preview Features**: Must be enabled with `--enable-preview --enable-native-access=ALL-UNNAMED`
+- **Native Libraries**: C++ FastFilter libraries for your platform (built with Bazel)
 
 ### Basic Usage
 
 ```java
-import com.example.ffi.platform.*;
+import org.fastfilter.ffi.*;
 
-// Get singleton loader instance
-NativeLibraryLoader loader = NativeLibraryLoader.getInstance();
+// Run with JDK 24 preview features
+// java --enable-preview --enable-native-access=ALL-UNNAMED -cp your-app.jar YourApp
 
-// Detect LibC type
-LibCInfo libc = LibCType.detectCurrent();
-System.out.println("Detected: " + libc.getType()); // GLIBC, MUSL, etc.
+// Create XOR8 filter
+long[] keys = {1L, 2L, 3L, 42L, 100L};
+try {
+    Xor8Filter filter = new Xor8Filter(keys);
+    
+    // Test containment
+    boolean contains42 = filter.mayContain(42L); // true
+    boolean contains99 = filter.mayContain(99L); // false (probably)
+    
+    // Get filter statistics
+    long bitCount = filter.getBitCount();
+    System.out.println("Filter uses " + bitCount + " bits");
+    
+    // Clean up
+    filter.free();
+} catch (UnsatisfiedLinkError e) {
+    System.out.println("C++ library not available: " + e.getMessage());
+}
 
-// Load native library
-SymbolLookup myLib = loader.loadLibrary("mylib");
+// Create Binary Fuse8 filter
+try {
+    BinaryFuse8Filter fuse = new BinaryFuse8Filter(keys);
+    boolean contains = fuse.mayContain(42L);
+    fuse.free();
+} catch (UnsatisfiedLinkError e) {
+    System.out.println("C++ library not available: " + e.getMessage());
+}
 
-// Load versioned library
-SymbolLookup opencv = loader.loadLibrary("opencv", "4.5.0");
+// Detect platform and LibC
+PlatformInfo platform = PlatformInfo.getInstance();
+LibCInfo libcInfo = LibCType.detectCurrent();
+System.out.println("Platform: " + platform.getDetailedPlatformString());
+System.out.println("LibC: " + libcInfo.type() + " v" + libcInfo.version());
 ```
 
 ## Architecture
@@ -74,12 +93,22 @@ SymbolLookup opencv = loader.loadLibrary("opencv", "4.5.0");
 ### Core Components
 
 ```
-com.example.ffi.platform/
-├── PlatformInfo.java          # OS/Architecture detection
-├── LibCType.java              # LibC implementation detection
-├── NativeLibraryLoader.java   # Singleton library loader
-├── NativeLibraryConfig.java   # Configuration management
-└── FFIHelper.java             # JDK 24 FFI integration
+org.fastfilter.ffi/
+├── PlatformInfo.java              # OS/Architecture detection
+├── LibCType.java                  # LibC implementation detection
+├── NativeLibraryLoaderAdvanced.java # Advanced library loader
+├── FFIHelper.java                 # JDK 24 FFI integration
+├── Xor8Filter.java               # XOR8 filter C++ bindings
+├── BinaryFuse8Filter.java        # Binary Fuse8 filter C++ bindings
+└── Filter.java                   # Common filter interface
+```
+
+```
+test suite/
+├── PlatformTest.java             # Platform detection tests (JUnit 5)
+├── LibCTypeQemuTest.java        # QEMU cross-platform tests
+├── CppFFITest.java              # C++ FFI functionality tests
+└── NativeLibraryLoaderV2Test.java # Library loading tests
 ```
 
 ### LibC Detection Strategy
@@ -179,8 +208,8 @@ brew update
 brew upgrade
 
 # Core development tools
-brew install maven gradle
-brew install openjdk@21
+brew install maven gradle bazel bazelisk
+brew install openjdk@24
 brew install cmake ninja
 
 # Compilers and toolchains
@@ -217,7 +246,7 @@ brew install nix
 echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
 echo 'export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"' >> ~/.zshrc
 echo 'export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"' >> ~/.zshrc
-echo 'export PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="/opt/homebrew/opt/openjdk@24/bin:$PATH"' >> ~/.zshrc
 
 # Apple Silicon specific
 if [[ $(uname -m) == 'arm64' ]]; then
@@ -253,7 +282,7 @@ sudo apt-get install -y \
     build-essential \
     maven \
     gradle \
-    openjdk-21-jdk \
+    openjdk-24-jdk \
     cmake \
     ninja-build
 
@@ -300,7 +329,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
 # Install development tools
-choco install -y openjdk21
+choco install -y openjdk --version=24.0.2
 choco install -y maven
 choco install -y gradle
 choco install -y git
@@ -325,21 +354,36 @@ choco install -y sysinternals
 #### 1. Run Unit Tests
 
 ```bash
-# Basic unit tests
+# All tests (local only)
 mvn clean test
 
-# Specific test class
-mvn test -Dtest=LibCTypeTest
+# Platform detection tests
+mvn test -Dtest=PlatformTest
+
+# LibC detection tests without Docker
+mvn test -Dtest=LibCTypeQemuTest
+
+# C++ FFI tests (requires JDK 24 preview features)
+mvn test -Dtest=CppFFITest -Dtest.ffi=true
+
+# Run with QEMU/Docker tests (requires Docker)
+mvn test -Dtest.qemu=true -Dtest.docker=true
 
 # With coverage
 mvn clean test jacoco:report
 ```
 
-#### 2. Run LibC Detection
+#### 2. Run Individual Test Categories
 
 ```bash
-# Compile and run detection
-mvn compile exec:java -Dexec.mainClass="com.example.ffi.platform.LibCType"
+# Platform detection
+mvn test -Dtest=PlatformTest -Dtest.ffi=true
+
+# Library loading
+mvn test -Dtest=NativeLibraryLoaderV2Test
+
+# C++ FFI functionality
+mvn test -Dtest=CppFFITest -Dtest.ffi=true -Dtest.docker=true
 ```
 
 ### macOS-Specific Testing

@@ -1,9 +1,9 @@
 # ============================================
-# flake.nix - Nix Flake for QEMU LibC Testing
+# flake.nix - FastFilter Java C++ FFI Development Environment
 # ============================================
 
 {
-  description = "LibC Detection Testing Environment with QEMU";
+  description = "FastFilter Java C++ FFI Development Environment with LibC Detection, QEMU Testing, and .env Support";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -38,8 +38,8 @@
           aarch64-musl = pkgs.pkgsCross.aarch64-multiplatform.pkgsMusl;
         };
 
-        # Java package with FFM support
-        jdk = pkgs.openjdk21;
+        # Java package with FFM support (JDK 24 preferred, fallback to 21)
+        jdk = pkgs.openjdk24 or pkgs.openjdk21;
 
         # QEMU configurations for different architectures
         qemuConfigs = {
@@ -179,7 +179,7 @@
           buildInputs = [ jdk ];
 
           buildPhase = ''
-            javac -d . --enable-preview --release 21 LibCType.java
+            javac -d . --enable-preview --release ${if pkgs ? openjdk24 then "24" else "21"} LibCType.java
           '';
 
           installPhase = ''
@@ -362,14 +362,38 @@
             perl
           ];
 
+          # Environment variable loading from .env files
+          env = {
+            # Load .env files in order of precedence
+            DOTENV_FILES = ''.env.${pkgs.stdenv.hostPlatform.system} .env'';
+          };
+
           shellHook = ''
-            echo "LibC Testing Environment Loaded"
-            echo "================================"
+            echo "FastFilter Java C++ FFI Development Environment"
+            echo "==============================================="
+            
+            # Load .env files if they exist
+            for envfile in .env.${pkgs.stdenv.hostPlatform.system} .env; do
+              if [ -f "$envfile" ]; then
+                echo "Loading environment from $envfile"
+                set -a  # Export all variables
+                source "$envfile"
+                set +a  # Stop exporting
+              fi
+            done
+            
+            echo ""
             echo "Available tools:"
             echo "  - QEMU for multiple architectures"
             echo "  - Cross-compilers for ARM, RISC-V, etc."
             echo "  - Docker/Podman for container testing"
             echo "  - Java ${jdk.version} with FFM support"
+            echo ""
+            echo "Environment:"
+            echo "  - JDK: ${jdk}"
+            echo "  - JAVA_HOME: ''${JAVA_HOME:-${jdk}/}"
+            echo "  - CC: ''${CC:-gcc}"
+            echo "  - CXX: ''${CXX:-g++}"
             echo ""
             echo "Run 'run-libc-tests' to start testing"
             echo "Run 'test-containers' for container tests"
@@ -384,7 +408,7 @@
             # Aliases for convenience
             alias test-alpine-x64="qemu-system-x86_64 -m 2G -nographic -hda alpine-x64.qcow2"
             alias test-alpine-arm="qemu-system-aarch64 -m 2G -nographic -hda alpine-arm.qcow2"
-            alias compile-all="javac --enable-preview --release 21 -d build src/**/*.java"
+            alias compile-all="javac --enable-preview --release ${if pkgs ? openjdk24 then "24" else "21"} -d build src/**/*.java"
             alias run-detector="java --enable-preview -cp build com.example.ffi.platform.LibCType"
           '';
         };
@@ -470,8 +494,8 @@ pkgs.mkShell {
     qemu
     qemu-utils
 
-    # Java
-    openjdk21
+    # Java (JDK 24 preferred)
+    (pkgs.openjdk24 or pkgs.openjdk21)
     maven
 
     # Compilers and tools

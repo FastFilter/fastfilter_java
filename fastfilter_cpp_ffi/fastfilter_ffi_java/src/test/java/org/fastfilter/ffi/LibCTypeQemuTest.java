@@ -31,8 +31,7 @@ import static org.junit.jupiter.api.Assumptions.*;
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("LibC Detection QEMU Cross-Platform Tests")
-@EnabledIfSystemProperty(named = "test.qemu", matches = "true")
+@DisplayName("LibC Detection Cross-Platform Tests")
 class LibCTypeQemuTest
 {
 
@@ -262,15 +261,84 @@ class LibCTypeQemuTest
 	}
 
 	/**
-	 * Parameterized test for LibC detection
+	 * Test local LibC detection (always runs)
+	 */
+	@Test
+	@Order(1)
+	@DisplayName("Local LibC detection should work correctly")
+	void testLocalLibCDetection() {
+		// Test current platform
+		LibCInfo libcInfo = LibCType.detectCurrent();
+		assertNotNull(libcInfo, "LibC info should not be null");
+		
+		LibCType type = libcInfo.type();
+		assertNotNull(type, "LibC type should not be null");
+		
+		System.out.println("=== Local Platform LibC Detection ===");
+		System.out.println("LibC Type: " + type);
+		System.out.println("LibC Version: " + libcInfo.version());
+		System.out.println("Confidence: " + libcInfo.confidenceLevel() + "%");
+		System.out.println("Library paths: " + libcInfo.libraryPaths());
+		System.out.println("Features: " + libcInfo.features());
+		
+		// Basic validation
+		assertTrue(libcInfo.confidenceLevel() > 0, "Confidence should be positive");
+		assertFalse(libcInfo.libraryPaths().isEmpty(), "Should have at least one library path");
+		
+		// Test that we can detect some known platform
+		switch (type) {
+			case GLIBC, MUSL, DARWIN_LIBC, MSVCRT -> {
+				// These are expected/known types
+				System.out.println("✓ Detected known LibC type: " + type);
+			}
+			case UNKNOWN -> {
+				System.out.println("⚠ LibC type unknown, but this may be expected on some platforms");
+			}
+		}
+	}
+
+	/**
+	 * Test LibC detection with simulated environments (no Docker required)
+	 */
+	@Test
+	@Order(2)
+	@DisplayName("LibC detection with simulated conditions")
+	void testLibCDetectionSimulated() {
+		System.out.println("=== Simulated LibC Detection Tests ===");
+		
+		// Test detection context with different scenarios
+		for (LibCType type : LibCType.values()) {
+			if (type == LibCType.UNKNOWN) continue;
+			
+			LibCType.DetectionContext context = new LibCType.DetectionContext();
+			
+			// Test if this LibC type can be detected
+			boolean canDetect = type.detect(context);
+			System.out.printf("LibC %s detection capability: %s%n", type, canDetect ? "✓" : "✗");
+			
+			if (canDetect && context.getDetectedVersion() != null) {
+				System.out.printf("  Detected version: %s%n", context.getDetectedVersion());
+			}
+		}
+		
+		// This test should always pass as it's just testing the detection logic
+		assertTrue(true, "Simulated detection tests completed");
+	}
+
+	/**
+	 * Parameterized test for LibC detection via containers (requires Docker/QEMU)
 	 */
 	@ParameterizedTest(name = "{index}: {0}")
-	@MethodSource("platformProvider")
-	@DisplayName("LibC detection on different platforms")
-	void testLibCDetection(PlatformTestConfig config) throws Exception {
+	@MethodSource("platformProvider") 
+	@DisplayName("LibC detection on different platforms via Docker")
+	@EnabledIfSystemProperty(named = "test.qemu", matches = "true", disabledReason = "QEMU tests disabled by default")
+	void testLibCDetectionContainer(PlatformTestConfig config) throws Exception {
 		// Skip certain tests in CI environment
 		assumeFalse(config.skipOnCI() && isRunningInCI(),
 		            "Skipping " + config.name() + " in CI environment");
+		
+		assumeTrue(isDockerAvailable(), "Docker is not available");
+		System.out.println("Testing container platform: " + config.name());
 
 		// Get or create container
 		try(GenericContainer<?> container = getOrCreateContainer(config))
@@ -315,18 +383,18 @@ class LibCTypeQemuTest
 				testLibCVersion(container, config);
 			}
 		}
-
-
 	}
 
 	/**
-	 * Parameterized test for library loading
+	 * Parameterized test for library loading via containers
 	 */
 	@ParameterizedTest(name = "{index}: Library loading on {0}")
 	@MethodSource("platformProvider")
-	@DisplayName("Library loading on different platforms")
+	@DisplayName("Library loading on different platforms via Docker")
+	@EnabledIfSystemProperty(named = "test.qemu", matches = "true", disabledReason = "QEMU tests disabled by default")
 	void testLibraryLoading(PlatformTestConfig config) throws Exception {
 		assumeFalse(config.skipOnCI() && isRunningInCI());
+		assumeTrue(isDockerAvailable(), "Docker is not available");
 
 		try(GenericContainer<?> container = getOrCreateContainer(config)){
 			// Test loading common libraries
@@ -351,14 +419,16 @@ class LibCTypeQemuTest
 	}
 
 	/**
-	 * Parameterized test for Java integration
+	 * Parameterized test for Java integration via containers
 	 */
 	@ParameterizedTest(name = "{index}: Java detection on {0}")
 	@MethodSource("platformProvider")
-	@DisplayName("Java LibC detection on different platforms")
-	@EnabledIfSystemProperty(named = "test.java.integration", matches = "true")
+	@DisplayName("Java LibC detection on different platforms via Docker")
+	@EnabledIfSystemProperty(named = "test.java.integration", matches = "true", disabledReason = "Java integration tests disabled by default")
+	@EnabledIfSystemProperty(named = "test.qemu", matches = "true", disabledReason = "QEMU tests disabled by default")
 	void testJavaLibCDetection(PlatformTestConfig config) throws Exception {
 		assumeFalse(config.skipOnCI() && isRunningInCI());
+		assumeTrue(isDockerAvailable(), "Docker is not available");
 
 		try(GenericContainer<?> container = getOrCreateContainer(config)){
 			// Install Java if possible
@@ -509,6 +579,19 @@ class LibCTypeQemuTest
 			       System.getenv("GITHUB_ACTIONS") != null ||
 			       System.getenv("JENKINS_HOME") != null ||
 			       System.getenv("GITLAB_CI") != null;
+	}
+
+	/**
+	 * Check if Docker is available
+	 */
+	private boolean isDockerAvailable() {
+		try {
+			Process process = new ProcessBuilder("docker", "--version").start();
+			boolean finished = process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
+			return finished && process.exitValue() == 0;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	/**

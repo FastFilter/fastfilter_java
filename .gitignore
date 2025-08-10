@@ -1,7 +1,11 @@
-# Compiled class file
+# ==============================================
+# Java Build Artifacts
+# ==============================================
+
+# Compiled class files
 *.class
 
-# Log file
+# Log files
 *.log
 
 # BlueJ files
@@ -10,7 +14,7 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -19,36 +23,307 @@
 *.tar.gz
 *.rar
 
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# Maven
+target/
+*/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ==============================================
+# Bazel
+# ==============================================
+
+# Bazel output directories
+bazel-*
+bazel-bin/
+bazel-out/
+bazel-testlogs/
+bazel-genfiles/
+
+# Bazel configuration files
+.bazelrc.local
+.bazelrc.user
+.bazelversion
+.bazel/
+
+# Bazel module files
+MODULE.bazel.lock
+MODULE.bazel.lock~
+
+# Bazel cache directories
+.bazel-cache/
+/bazel-cache/
+
+# ==============================================
+# IDE Files
+# ==============================================
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+!.idea/runConfigurations/
+
 # Eclipse
 .classpath
 .project
 .settings/
+.metadata/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders/
+.factorypath
 
-#IntelliJ
-*.iml
-.idea/*
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
 
-target/*
-*/target/*
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-/bin/
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 
-# Bazel artifacts
-bazel-*
-.bazelrc.user
-.bazelversion
-MODULE.bazel.lock
-
-# External dependencies (fetched by Bazel)
-fastfilter_cpp/
+# ==============================================
+# Native Libraries & C++ Build
+# ==============================================
 
 # Native library build artifacts
 native-libs/*/target/
 *.dylib
 *.so
 *.dll
+*.a
+*.lib
+
+# C++ build artifacts
+*.o
+*.obj
+*.exe
+*.out
+*.app
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# ==============================================
+# Environment & Configuration
+# ==============================================
+
+# Environment files (keep templates)
+.env
+.env.local
+!.env.example
+!.env.macos-*
+!.env.linux-*
+!.env.windows
+
+# Local configuration
+.bazelrc.local
+local.properties
+
+# ==============================================
+# Testing & Benchmarking
+# ==============================================
+
+# Test results
+TEST-*.xml
+test-output/
+test-reports/
+junit/
 
 # Benchmark results
 benchmark-results/
 *.json
+jmh-result.json
+*_benchmark_results.json
+
+# JMH generated files
+jmh_*
+**/generated-test-sources/
+
+# ==============================================
+# Docker & Containers
+# ==============================================
+
+# Docker
+.dockerignore
+Dockerfile.local
+
+# Testcontainers
+.testcontainers.properties
+
+# ==============================================
+# Nix
+# ==============================================
+
+# Nix
+result
+result-*
+.direnv/
+
+# ==============================================
+# macOS
+# ==============================================
+
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ==============================================
+# Windows
+# ==============================================
+
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Dump file
+*.stackdump
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# ==============================================
+# Linux
+# ==============================================
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+# ==============================================
+# External Dependencies
+# ==============================================
+
+# External repositories (fetched by Bazel)
+fastfilter_cpp/
+!fastfilter_cpp/BUILD.bazel
+!fastfilter_cpp/README.md
+!fastfilter_cpp/LICENSE
+
+# Third-party libraries
+libs/
+vendor/
+
+# ==============================================
+# Temporary & Cache Files
+# ==============================================
+
+# Temporary files
+*~
+*.tmp
+*.temp
+.temporary/
+
+# Cache files
+.cache/
+*.cache
+
+# Lock files
+*.lock
+!pom.xml.lock
+
+# ==============================================
+# Documentation Build
+# ==============================================
+
+# Generated documentation
+docs/_build/
+docs/build/
+site/
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+dist/

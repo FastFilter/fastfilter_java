@@ -12,7 +12,6 @@
         <module>fastfilter</module>
         <module>jmh</module>
         <module>fastfilter_cpp_ffi</module>
-		<module>artagon-java-ffi</module>
 	</modules>
 
     <properties>
@@ -37,6 +36,9 @@
 		<mockito.version>5.12.0</mockito.version>
 		<testcontainers.commons-compress.version>1.26.0</testcontainers.commons-compress.version>
 		<testcontainers.commons-lang3.version>3.18.0</testcontainers.commons-lang3.version>
+        
+        <!-- .env file support -->
+        <dotenv.maven.plugin.version>1.0.0</dotenv.maven.plugin.version>
 	</properties>
 
     <name>FastFilter</name>
@@ -67,6 +69,50 @@
       <developerConnection>scm:git:ssh://git@github.com:FastFilter/fastfilter_java.git</developerConnection>
       <url>https://github.com/FastFilter/fastfilter_java/tree/master</url>
     </scm>
+
+    <build>
+        <plugins>
+            <!-- .env file support -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <id>load-env-files</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <!-- Load platform-specific .env file first if it exists -->
+                                <file>${project.basedir}/.env.${os.name}-${os.arch}</file>
+                                <!-- Then load generic .env file -->
+                                <file>${project.basedir}/.env</file>
+                            </files>
+                            <quiet>true</quiet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- OS and architecture detection for .env file selection -->
+            <plugin>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os.maven.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>detect</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <distributionManagement>
       <snapshotRepository>

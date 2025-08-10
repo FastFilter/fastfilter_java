@@ -84,5 +84,42 @@ and with less than 1% probability "Found" or "Found; common".
 
 Internally, the tool uses a xor+ filter (see above) with 8 bits per fingerprint. Actually, 1024 smaller filters (segments) are made, the segment id being the highest 10 bits of the key. The lowest bit of the key is set to either 0 (regular) or 1 (common), and so two lookups are made per password. Because of that, the false positive rate is twice of what it would be with just one lookup (0.0078 instead of 0.0039). A regular Bloom filter with the same guarantees would be ~760 MB. For each lookup, one filter segment (so, less than 1 MB) are read from the file.
 
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[BUILD.md](BUILD.md)** - Complete build instructions for Maven and Bazel
+- **[docs/INTEGRATION.md](docs/INTEGRATION.md)** - C++ integration guide for high-performance filters
+- **[docs/JMH_BENCHMARKS.md](docs/JMH_BENCHMARKS.md)** - JMH benchmark suite documentation
+- **[GITHUB_CI_SETUP.md](GITHUB_CI_SETUP.md)** - CI/CD pipeline configuration
+- **[examples/README.md](examples/README.md)** - Practical usage examples
+
+## Quick Start
+
+```bash
+# Build with Maven (recommended)
+mvn clean compile test
+
+# Run JMH benchmarks
+cd jmh && mvn clean package && java -jar target/benchmarks.jar
+
+# Build with C++ integration (requires JDK 24)
+bazel build //fastfilter:fastfilter_with_cpp
+java --enable-native-access=ALL-UNNAMED --enable-preview YourApp
+```
+
+## Project Structure
+
+```
+fastfilter_java/
+├── src/                           # Main Java library source
+├── jmh/                          # JMH benchmarks
+├── examples/                     # Usage examples
+├── docs/                         # Comprehensive documentation
+├── fastfilter_cpp_ffi/          # C++ integration (JDK 24 FFI)
+├── .github/workflows/           # CI/CD pipelines
+└── BUILD.md                     # Build instructions
+```
+
 
 

@@ -1,18 +1,55 @@
-name: Java 17 CI
+name: Java 24 CI (Legacy)
 
-on: [push,pull_request]
+# Legacy workflow - main CI/CD is in pr-build.yml
+# This provides a simple fallback for basic Java builds
+
+on: 
+  push:
+    branches: [ master, main ]
+    paths: 
+      - '**.java'
+      - 'pom.xml'
+      - '**/pom.xml'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - '**.java' 
+      - 'pom.xml'
+      - '**/pom.xml'
 
 jobs:
-  build:
+  simple-build:
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 17
-        uses: actions/setup-java@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
         with:
-          java-version: 17
-      - name: Build
-        run: mvn package
-      - name: Test
-        run: mvn test
+          java-version: '24'
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: Setup environment
+        run: |
+          # Copy Linux environment template
+          cp .env.linux-x86_64 .env || echo "No .env template found"
+          
+      - name: Build with Maven
+        run: mvn clean package -B -DskipTests
+        
+      - name: Run basic tests
+        run: mvn test -B -Dtest='!**/*Benchmark*,!**/*Qemu*'
+        
+      - name: Verify Bazel can build Java library
+        run: |
+          # Install Bazel
+          wget -q https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -O bazel
+          chmod +x bazel
+          sudo mv bazel /usr/local/bin/
+          
+          # Build core Java library only
+          bazel build //fastfilter:fastfilter
