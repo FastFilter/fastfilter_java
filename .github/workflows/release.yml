@@ -158,14 +158,25 @@ jobs:
           cd ../../..
         done
     
+    - name: Deploy to GitHub Packages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Configure git user for version changes
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Deploy to GitHub Packages
+        mvn deploy -Pgithub-packages -Ddeploy.github=true -B -DskipTests
+
     - name: Deploy to Maven Central
       if: github.event_name == 'release'
       env:
-        MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+        MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
         GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       run: |
-        mvn deploy -PperformRelease=true -B \
+        mvn deploy -Pmaven-central -Ddeploy.central=true -B \
           -Dgpg.passphrase=${GPG_PASSPHRASE} \
           -DskipTests
     

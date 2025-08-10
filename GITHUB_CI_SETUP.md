@@ -203,6 +203,110 @@ GITHUB_TOKEN        - Auto-provided, used for benchmark tracking
 - Native library functionality verified on each platform
 - Integration tests ensure C++ bindings work correctly
 
+## Artifact Deployment Setup
+
+### Automated Credential Management
+
+FastFilter Java includes automated scripts for setting up deployment credentials:
+
+```bash
+# Run the setup script
+./scripts/setup-github-credentials.sh
+```
+
+This script will:
+1. Authenticate with GitHub CLI
+2. Create repository secrets for CI/CD:
+   - `GITHUB_TOKEN` - For GitHub Packages deployment
+   - `MAVEN_USERNAME` - GitHub username for Maven
+   - `MAVEN_PASSWORD` - GitHub token for Maven authentication
+   - `GPG_PASSPHRASE` - Optional GPG passphrase for signing
+3. Configure local Maven settings.xml
+4. Generate .env.local with credentials
+
+### Manual Secret Configuration
+
+If you prefer manual setup, configure these repository secrets:
+
+```bash
+# Set secrets using GitHub CLI
+gh secret set GITHUB_TOKEN --body "ghp_your_token_here"
+gh secret set MAVEN_USERNAME --body "your_github_username"  
+gh secret set MAVEN_PASSWORD --body "ghp_your_token_here"
+gh secret set GPG_PASSPHRASE --body "your_gpg_passphrase"
+
+# Optional: Maven Central credentials
+gh secret set MAVEN_CENTRAL_USERNAME --body "your_sonatype_username"
+gh secret set MAVEN_CENTRAL_PASSWORD --body "your_sonatype_password"
+```
+
+### Deployment Workflows
+
+#### Snapshot Deployment (Automatic)
+
+**Trigger**: Push to `master` branch
+**Target**: GitHub Packages
+**Workflow**: `pr-build.yml` -> `deploy-snapshot` job
+
+```yaml
+deploy-snapshot:
+  if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+  needs: [build-and-test, integration-test]
+  runs-on: ubuntu-latest
+  steps:
+    - name: Deploy SNAPSHOT to GitHub Packages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        mvn clean deploy -Pgithub-packages-snapshot -Ddeploy.github.snapshot=true -B -DskipTests
+```
+
+**Skip deployment**: Include `[skip deploy]` in commit message
+
+#### Release Deployment (Manual)
+
+**Trigger**: GitHub release creation
+**Targets**: GitHub Packages + Maven Central
+**Workflow**: `release.yml` -> `build-and-release` job
+
+```yaml
+- name: Deploy to GitHub Packages
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    mvn deploy -Pgithub-packages -Ddeploy.github=true -B -DskipTests
+
+- name: Deploy to Maven Central
+  env:
+    MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+    MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+    GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+  run: |
+    mvn deploy -Pmaven-central -Ddeploy.central=true -B -DskipTests
+```
+
+### Repository Configuration
+
+#### GitHub Packages URLs
+
+- **Repository URL**: `https://maven.pkg.github.com/FastFilter/fastfilter_java`
+- **Package URL**: `https://github.com/FastFilter/fastfilter_java/packages`
+- **Maven Coordinates**: `io.github.fastfilter:fastfilter:VERSION`
+
+#### Maven Settings for CI
+
+The workflows automatically configure Maven settings for GitHub Packages:
+
+```xml
+<servers>
+  <server>
+    <id>github</id>
+    <username>${env.GITHUB_USERNAME}</username>
+    <password>${env.GITHUB_TOKEN}</password>
+  </server>
+</servers>
+```
+
 ## Environment Configuration for CI
 
 ### Platform-Specific .env Files

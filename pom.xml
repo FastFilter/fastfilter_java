@@ -115,15 +115,39 @@
     </build>
 
     <distributionManagement>
+      <!-- GitHub Packages (Primary) -->
       <snapshotRepository>
-        <id>ossrh</id>
-        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        <id>github</id>
+        <name>GitHub Packages</name>
+        <url>https://maven.pkg.github.com/FastFilter/fastfilter_java</url>
       </snapshotRepository>
       <repository>
-        <id>ossrh</id>
-        <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        <id>github</id>
+        <name>GitHub Packages</name>
+        <url>https://maven.pkg.github.com/FastFilter/fastfilter_java</url>
       </repository>
+      
+      <!-- Maven Central (Secondary) -->
+      <site>
+        <id>ossrh-snapshots</id>
+        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+      </site>
     </distributionManagement>
+    
+    <!-- Repositories for dependency resolution -->
+    <repositories>
+      <repository>
+        <id>github</id>
+        <name>GitHub FastFilter Packages</name>
+        <url>https://maven.pkg.github.com/FastFilter/fastfilter_java</url>
+        <snapshots>
+          <enabled>true</enabled>
+        </snapshots>
+        <releases>
+          <enabled>true</enabled>
+        </releases>
+      </repository>
+    </repositories>
 
     <profiles>
 		<profile>
@@ -400,6 +424,158 @@
                 </plugins>
             </build>
         </profile>
+        
+        <!-- =========================================== -->
+        <!-- GitHub Packages Deployment Profiles -->
+        <!-- =========================================== -->
+        
+        <profile>
+            <id>github-packages</id>
+            <activation>
+                <property>
+                    <name>deploy.github</name>
+                </property>
+            </activation>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>github</id>
+                    <name>GitHub Packages</name>
+                    <url>https://maven.pkg.github.com/FastFilter/fastfilter_java</url>
+                </snapshotRepository>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub Packages</name>
+                    <url>https://maven.pkg.github.com/FastFilter/fastfilter_java</url>
+                </repository>
+            </distributionManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.11.2</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <source>24</source>
+                            <release>24</release>
+                            <additionalJOptions>
+                                <additionalJOption>--enable-preview</additionalJOption>
+                            </additionalJOptions>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <profile>
+            <id>github-packages-snapshot</id>
+            <activation>
+                <property>
+                    <name>deploy.github.snapshot</name>
+                </property>
+            </activation>
+            <properties>
+                <maven.deploy.skip>false</maven.deploy.skip>
+            </properties>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>github</id>
+                    <name>GitHub Packages Snapshots</name>
+                    <url>https://maven.pkg.github.com/FastFilter/fastfilter_java</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        
+        <profile>
+            <id>maven-central</id>
+            <activation>
+                <property>
+                    <name>deploy.central</name>
+                </property>
+            </activation>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.11.2</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <source>24</source>
+                            <release>24</release>
+                            <additionalJOptions>
+                                <additionalJOption>--enable-preview</additionalJOption>
+                            </additionalJOptions>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.7</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
         <profile>
             <id>release-sign-artifacts</id>
             <activation>

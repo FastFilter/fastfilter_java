@@ -829,6 +829,111 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64
 
 See **[ENV_USAGE.md](ENV_USAGE.md)** for complete documentation and troubleshooting.
 
+## Artifact Deployment
+
+### GitHub Packages (Primary Repository)
+
+FastFilter Java uses GitHub Packages as the primary Maven repository for both snapshots and releases.
+
+#### Automated Deployment Setup
+
+1. **Run the credential setup script**:
+   ```bash
+   ./scripts/setup-github-credentials.sh
+   ```
+   This script will:
+   - Configure GitHub CLI authentication
+   - Set up repository secrets for CI/CD
+   - Create Maven settings.xml with GitHub Packages configuration
+   - Generate local .env.local with credentials
+
+2. **Verify setup**:
+   ```bash
+   gh auth status
+   mvn help:effective-settings | grep github
+   ```
+
+#### Manual Deployment
+
+**Deploy snapshots**:
+```bash
+# Quick deployment
+./scripts/deploy-artifacts.sh snapshot
+
+# With custom version
+./scripts/deploy-artifacts.sh snapshot -v 1.0.4-SNAPSHOT
+
+# Dry run first
+./scripts/deploy-artifacts.sh snapshot --dry-run
+```
+
+**Deploy releases**:
+```bash
+# Deploy release version
+./scripts/deploy-artifacts.sh release -v 1.0.3
+
+# Deploy to all repositories
+./scripts/deploy-artifacts.sh all
+```
+
+**Direct Maven commands**:
+```bash
+# Deploy snapshot to GitHub Packages
+mvn clean deploy -Pgithub-packages-snapshot -Ddeploy.github.snapshot=true
+
+# Deploy release to GitHub Packages  
+mvn clean deploy -Pgithub-packages -Ddeploy.github=true
+
+# Deploy to Maven Central (requires GPG setup)
+mvn clean deploy -Pmaven-central -Ddeploy.central=true
+```
+
+### Repository Configuration
+
+**Using GitHub Packages in your project**:
+
+Add to your `pom.xml`:
+```xml
+<repositories>
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/FastFilter/fastfilter_java</url>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>io.github.fastfilter</groupId>
+    <artifactId>fastfilter</artifactId>
+    <version>1.0.3-SNAPSHOT</version>
+  </dependency>
+</dependencies>
+```
+
+Add to your `~/.m2/settings.xml`:
+```xml
+<servers>
+  <server>
+    <id>github</id>
+    <username>YOUR_GITHUB_USERNAME</username>
+    <password>YOUR_GITHUB_TOKEN</password>
+  </server>
+</servers>
+```
+
+### Automated CI/CD Deployment
+
+**Snapshot Deployment** (automatic):
+- Triggered on push to `master` branch
+- Deploys SNAPSHOT versions to GitHub Packages
+- Skip with commit message containing `[skip deploy]`
+
+**Release Deployment** (on GitHub releases):
+- Triggered when creating a GitHub release
+- Builds all native libraries for supported platforms
+- Deploys to both GitHub Packages and Maven Central
+- Creates release artifacts
+
 ### Complete Environment Setup Script
 
 Create `setup.sh`:
