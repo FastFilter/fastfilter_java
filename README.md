@@ -43,7 +43,7 @@ When using Maven:
 * [Erlang](https://github.com/mpope9/exor_filter)
 * [Go](https://github.com/FastFilter/xorfilter)
 * [Java](https://github.com/komiya-atsushi/xor-filter)
-* [Python](https://github.com/GreyDireWolf/pyxorfilter)
+* [Python](https://github.com/FastFilter/pyfusefilter)
 * Rust: [1](https://github.com/bnclabs/xorfilter), [2](https://github.com/codri/xorfilter-rs), [3](https://github.com/Polochon-street/rustxorfilter)
 * [C#](https://github.com/jonmat/FastIndex)
 
