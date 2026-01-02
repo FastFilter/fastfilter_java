@@ -24,7 +24,6 @@ public class ProbabilityCFuse {
 
     public static void main(String... args) {
         for(int size = 1; size < 1_000_000; size *= 10) {
-        // for(int size = 1; size < 1_000_000; size = (size < 100) ? (size + 1) : (int) (size * 1.1)) {
             Data best = null;
             for (int segmentLengthBits = 3; segmentLengthBits < 14; segmentLengthBits++) {
                 int segmentLength = 1 << segmentLengthBits;
@@ -65,7 +64,6 @@ public class ProbabilityCFuse {
         if (best != null && d.bitsPerKey > best.bitsPerKey) {
             return null;
         }
-        // System.out.println("  test " + d);
         int successCount = 0;
         int testCount = Math.max(10, 10_000_000 / size);
         for(int seed = 0; seed < testCount; seed++) {

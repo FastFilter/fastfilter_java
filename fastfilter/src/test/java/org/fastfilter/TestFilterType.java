@@ -60,24 +60,6 @@ public enum TestFilterType {
             return SuccinctCountingBlockedBloomRanked.construct(keys, setting);
         }
     },
-    XOR_SIMPLE {
-        @Override
-        public Filter construct(long[] keys, int setting) {
-            return XorSimple.construct(keys);
-        }
-    },
-    XOR_SIMPLE_2 {
-        @Override
-        public Filter construct(long[] keys, int setting) {
-            return XorSimple2.construct(keys);
-        }
-    },
-    XOR_8 {
-        @Override
-        public Filter construct(long[] keys, int setting) {
-            return Xor8.construct(keys);
-        }
-    },
     XOR_16 {
         @Override
         public Filter construct(long[] keys, int setting) {
@@ -94,6 +76,12 @@ public enum TestFilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return XorBinaryFuse8.construct(keys);
+        }
+    },
+    XOR_BINARY_FUSE_16 {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return XorBinaryFuse16.construct(keys);
         }
     },
     XOR_BINARY_FUSE_32 {

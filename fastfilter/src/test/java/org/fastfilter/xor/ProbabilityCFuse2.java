@@ -37,12 +37,6 @@ public class ProbabilityCFuse2 {
                 long seed = 0;
                 long key = i;
                 long hash = Hash.hash64(key, seed);
-
-//                int r0 = (int) Hash.hash64(hash, 1);
-//                int x = Hash.reduce(r0, segmentCount);
-//                int h0 = x + (int) (Hash.hash64(hash, 2) & (segmentLength - 1));
-//                int h1 = x + (int) (Hash.hash64(hash, 3) & (segmentLength - 1));
-//                int h2 = x + (int) (Hash.hash64(hash, 4) & (segmentLength - 1));
 //
                 int r0 = (int) Hash.hash64(hash, 1);
                 int x = Hash.reduce(r0, segmentCount * 2 + segmentLength - 1);
@@ -63,16 +57,9 @@ public class ProbabilityCFuse2 {
     }
 
     public static void main(String... args) {
-//testProb();
-//if(true)return;
-
-
-//        for(int size = 100_000; size < 1_000_000; size *= 10) {
         for(int size = 1; size < 1_000_000; size *= 10) {
-        // for(int size = 1; size < 1_000_000; size = (size < 100) ? (size + 1) : (int) (size * 1.1)) {
             Data best = null;
             for (int segmentLengthBits = 3; segmentLengthBits <= 12; segmentLengthBits++) {
-//            for (int segmentLengthBits = 3; segmentLengthBits < 14; segmentLengthBits++) {
                 int segmentLength = 1 << segmentLengthBits;
                 if (segmentLength > size) {
                     break;
@@ -89,9 +76,6 @@ public class ProbabilityCFuse2 {
             }
             if (best != null) {
                 System.out.println(best);
-//                for(int i=0; i<100; i++) {
-//                    System.out.println(i + ": " + best.data[i]);
-//                }
             }
         }
     }

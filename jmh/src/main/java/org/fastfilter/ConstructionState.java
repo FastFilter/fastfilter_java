@@ -19,8 +19,6 @@ public class ConstructionState {
             "BLOCKED_BLOOM",
             "SUCCINCT_COUNTING_BLOCKED_BLOOM",
             "SUCCINCT_COUNTING_BLOCKED_BLOOM_RANKED",
-            "XOR_SIMPLE",
-            "XOR_SIMPLE_2",
             "XOR_8",
             "XOR_16",
             "XOR_BINARY_FUSE_8",

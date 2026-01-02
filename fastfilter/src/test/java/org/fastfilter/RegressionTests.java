@@ -22,7 +22,6 @@ public class RegressionTests {
                 {SUCCINCT_COUNTING_BLOCKED_BLOOM, 6049486880293779298L, new long[]{1, 2, 3}, 8},
                 {SUCCINCT_COUNTING_BLOCKED_BLOOM, 353772444652436712L, new long[]{5828366214313827392L, -8467365400393984494L, -424469057572555653L}, 8},
                 // actually this one is impossible to reproduce because of the volatile seed
-                {XOR_SIMPLE, 6831634639270950343L, new long[]{1, 2, 3}, 8},
                 {CUCKOO_8, 6335419348330489927L, new long[]{1, 2, 3}, 8},
                 {CUCKOO_16, -9087718164446355442L, new long[]{1, 2, 3}, 8},
                 {CUCKOO_PLUS_8, -4031187722136552688L, new long[]{2173645522219008926L, 589862361776609381L, -1776331367981897399L, -7505626095864333717L, 6968992741301426055L, -3110009760358584538L,
