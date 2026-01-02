@@ -14,6 +14,7 @@ import org.fastfilter.mphf.MPHFilter;
 import org.fastfilter.xor.Xor16;
 import org.fastfilter.xor.Xor8;
 import org.fastfilter.xor.XorBinaryFuse8;
+import org.fastfilter.xor.XorBinaryFuse16;
 import org.fastfilter.xor.XorSimple;
 import org.fastfilter.xor.XorSimple2;
 import org.fastfilter.xorplus.XorPlus8;
@@ -98,6 +99,12 @@ public enum TestFilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return XorBinaryFuse8.construct(keys);
+        }
+    },
+    XOR_BINARY_FUSE_16 {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return XorBinaryFuse16.construct(keys);
         }
     },
     CUCKOO_8 {
