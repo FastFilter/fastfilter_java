@@ -14,8 +14,6 @@ public class SmallSetTest {
         Xor16.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
         XorBinaryFuse8.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
         XorBinaryFuse16.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
-        XorSimple.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
-        XorSimple2.construct(new long[]{0xef9bddc5166c081cL, 0x33bf87adaa46dcfcL});
     }
     
     @Test

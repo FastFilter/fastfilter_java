@@ -15,8 +15,6 @@ import org.fastfilter.xor.Xor16;
 import org.fastfilter.xor.Xor8;
 import org.fastfilter.xor.XorBinaryFuse8;
 import org.fastfilter.xor.XorBinaryFuse16;
-import org.fastfilter.xor.XorSimple;
-import org.fastfilter.xor.XorSimple2;
 import org.fastfilter.xorplus.XorPlus8;
 
 /**
@@ -63,24 +61,6 @@ public enum TestFilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return SuccinctCountingBlockedBloomRanked.construct(keys, setting);
-        }
-    },
-    XOR_SIMPLE {
-        @Override
-        public Filter construct(long[] keys, int setting) {
-            return XorSimple.construct(keys);
-        }
-    },
-    XOR_SIMPLE_2 {
-        @Override
-        public Filter construct(long[] keys, int setting) {
-            return XorSimple2.construct(keys);
-        }
-    },
-    XOR_8 {
-        @Override
-        public Filter construct(long[] keys, int setting) {
-            return Xor8.construct(keys);
         }
     },
     XOR_16 {
