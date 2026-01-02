@@ -6,7 +6,7 @@ The following filter types are currently implemented:
 
 * Xor filter: 8 and 16 bit variants; needs less space than cuckoo filters, with faster lookup
 * Xor+ filter: 8 and 16 bit variants; compressed xor filter
-* Xor binary fuse filter: 8 bit variant; needs less space than xor filters, with faster lookup
+* Xor binary fuse filter: 8 and 32 bit variants; needs less space than xor filters, with faster lookup
 * Cuckoo filter: 8 and 16 bit variants; uses cuckoo hashing to store fingerprints
 * Cuckoo+ filter: 8 and 16 bit variants, need a bit less space than regular cuckoo filters
 * Bloom filter: the 'standard' algorithm
@@ -32,7 +32,7 @@ When using Maven:
     <dependency>
       <groupId>io.github.fastfilter</groupId>
       <artifactId>fastfilter</artifactId>
-      <version>1.0.2</version>
+      <version>1.0.3</version>
     </dependency>
 
 # Other Xor Filter Implementations
