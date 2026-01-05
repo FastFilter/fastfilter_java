@@ -46,8 +46,8 @@
       </developer>
     </developers>
     <scm>
-      <connection>scm:git:git://git@github.com:FastFilter/fastfilter_java.git</connection>
-      <developerConnection>scm:git:ssh://git@github.com:FastFilter/fastfilter_java.git</developerConnection>
+      <connection>scm:git:git@github.com:FastFilter/fastfilter_java.git</connection>
+      <developerConnection>scm:git:git@github.com:FastFilter/fastfilter_java.git</developerConnection>
       <url>https://github.com/FastFilter/fastfilter_java/tree/master</url>
     </scm>
 
