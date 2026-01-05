@@ -47,6 +47,8 @@ When using Maven:
 * Rust: [1](https://github.com/bnclabs/xorfilter), [2](https://github.com/codri/xorfilter-rs), [3](https://github.com/Polochon-street/rustxorfilter)
 * [C#](https://github.com/jonmat/FastIndex)
 
+Note that the data format in other implementations may not match the data format in Java.
+
 ## Password Lookup Tool
 
 Included is a tool to build a filter from a list of known password (hashes), and a tool to do lookups. That way, the password list can be queried locally, without requiring a large file. The filter is only 650 MB, instead of the original file which is 11 GB. At the cost of some false positives (unknown passwords reported as known, with about 1% probability).
