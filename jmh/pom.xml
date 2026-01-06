@@ -39,6 +39,13 @@
                     <fork>true</fork>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.openjdk.jmh</groupId>
+                            <artifactId>jmh-generator-annprocess</artifactId>
+                            <version>${jmh.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                     <showDeprecation>true</showDeprecation>
                     <failOnError>true</failOnError>
                     <showWarnings>true</showWarnings>
@@ -63,6 +70,34 @@
                                 </transformer>
                             </transformers>
                             <finalName>benchmarks</finalName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>run-benchmarks</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-jar</argument>
+                                <argument>${project.build.directory}/benchmarks.jar</argument>
+                                <argument>org.fastfilter.FilterBenchmark</argument>
+                                <argument>-f</argument>
+                                <argument>1</argument>
+                                <argument>-wi</argument>
+                                <argument>1</argument>
+                                <argument>-i</argument>
+                                <argument>1</argument>
+                            </arguments>
                         </configuration>
                     </execution>
                 </executions>

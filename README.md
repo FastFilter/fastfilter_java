@@ -87,5 +87,72 @@ and with less than 1% probability "Found" or "Found; common".
 
 Internally, the tool uses a xor+ filter (see above) with 8 bits per fingerprint. Actually, 1024 smaller filters (segments) are made, the segment id being the highest 10 bits of the key. The lowest bit of the key is set to either 0 (regular) or 1 (common), and so two lookups are made per password. Because of that, the false positive rate is twice of what it would be with just one lookup (0.0078 instead of 0.0039). A regular Bloom filter with the same guarantees would be ~760 MB. For each lookup, one filter segment (so, less than 1 MB) are read from the file.
 
+## Benchmarks
+
+The project includes JMH (Java Microbenchmark Harness) benchmarks to measure the performance of the filters.
+
+### Running Benchmarks
+
+#### Option 1: Run via Maven (recommended)
+
+To run the benchmarks directly from Maven (with minimal iterations for quick testing):
+
+    mvn -pl jmh clean package exec:exec@run-benchmarks
+
+For full benchmarks, modify the pom.xml or run the JAR manually with custom parameters.
+
+This will compile and execute the JMH benchmarks for the XOR filters (XOR_8, XOR_16, XOR_BINARY_FUSE_8, XOR_BINARY_FUSE_16).
+
+#### Option 2: Run the JAR manually
+
+First, build the project:
+
+    mvn clean package
+
+Then run the benchmarks:
+
+    java -jar jmh/target/benchmarks.jar org.fastfilter.FilterBenchmark
+
+To run benchmarks for a specific filter type:
+
+    java -jar jmh/target/benchmarks.jar org.fastfilter.FilterBenchmark -p filterType=XOR_BINARY_FUSE_8
+
+Available filter types: `XOR_8`, `XOR_16`, `XOR_BINARY_FUSE_8`, `XOR_BINARY_FUSE_16`.
+
+### Benchmark Details
+
+The benchmarks measure:
+- Average time per operation (nanoseconds) for lookups of existing and non-existing keys
+- Throughput (operations per second) for the same operations
+- False positive rate validation
+
+
+Possible results:
+
+```
+
+Benchmark                                                     (filterType)   Mode  Cnt          Score   Error  Units
+FilterBenchmark.benchmarkContainsExistingThroughput                  XOR_8  thrpt       412364492,755          ops/s
+FilterBenchmark.benchmarkContainsExistingThroughput                 XOR_16  thrpt       397627818,837          ops/s
+FilterBenchmark.benchmarkContainsExistingThroughput      XOR_BINARY_FUSE_8  thrpt       516262004,459          ops/s
+FilterBenchmark.benchmarkContainsExistingThroughput     XOR_BINARY_FUSE_16  thrpt       489256453,340          ops/s
+FilterBenchmark.benchmarkContainsNonExistingThroughput               XOR_8  thrpt       429856367,135          ops/s
+FilterBenchmark.benchmarkContainsNonExistingThroughput              XOR_16  thrpt       441042890,257          ops/s
+FilterBenchmark.benchmarkContainsNonExistingThroughput   XOR_BINARY_FUSE_8  thrpt       533609392,046          ops/s
+FilterBenchmark.benchmarkContainsNonExistingThroughput  XOR_BINARY_FUSE_16  thrpt       540058414,150          ops/s
+FilterBenchmark.benchmarkContainsExisting                            XOR_8   avgt               2,475          ns/op
+FilterBenchmark.benchmarkContainsExisting                           XOR_16   avgt               2,522          ns/op
+FilterBenchmark.benchmarkContainsExisting                XOR_BINARY_FUSE_8   avgt               1,965          ns/op
+FilterBenchmark.benchmarkContainsExisting               XOR_BINARY_FUSE_16   avgt               2,060          ns/op
+FilterBenchmark.benchmarkContainsNonExisting                         XOR_8   avgt               2,347          ns/op
+FilterBenchmark.benchmarkContainsNonExisting                        XOR_16   avgt               2,295          ns/op
+FilterBenchmark.benchmarkContainsNonExisting             XOR_BINARY_FUSE_8   avgt               1,892          ns/op
+FilterBenchmark.benchmarkContainsNonExisting            XOR_BINARY_FUSE_16   avgt               1,903          ns/op
+```
+
+This indicates that we can issue about half a billion queries per second, and sustain a rate of about 2 ns per query.
+
+The benchmarks use 1,000,000 keys by default. You can modify the `NUM_KEYS` constant in `FilterBenchmark.java` for smaller/larger test sets.
+
 
 
