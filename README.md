@@ -22,7 +22,7 @@ The following additional types are implemented, but less tested:
 
 ## Reference
 
-* Thomas Mueller Graf, Daniel Lemire, [Binary Fuse Filters: Fast and Smaller Than Xor Filters](http://arxiv.org/abs/2201.01174), Journal of Experimental Algorithmics (to appear). DOI: 10.1145/3510449   
+* Thomas Mueller Graf, Daniel Lemire, [Binary Fuse Filters: Fast and Smaller Than Xor Filters](http://arxiv.org/abs/2201.01174), 	Journal of Experimental Algorithmics 27, 2022. DOI: 10.1145/3510449   
 * Thomas Mueller Graf,  Daniel Lemire, [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters](https://arxiv.org/abs/1912.08258), Journal of Experimental Algorithmics 25 (1), 2020. DOI: 10.1145/3376122
 
 ## Usage
@@ -46,6 +46,7 @@ When using Maven:
 * [Python](https://github.com/FastFilter/pyfusefilter)
 * Rust: [1](https://github.com/bnclabs/xorfilter), [2](https://github.com/codri/xorfilter-rs), [3](https://github.com/Polochon-street/rustxorfilter)
 * [C#](https://github.com/jonmat/FastIndex)
+* [Java C wrapper](https://github.com/FastFilter/jfusebin)
 
 Note that the data format in other implementations may not match the data format in Java.
 
