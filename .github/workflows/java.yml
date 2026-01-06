@@ -1,4 +1,4 @@
-name: Java 17 CI
+name: Java 22 CI
 
 on: [push,pull_request]
 
