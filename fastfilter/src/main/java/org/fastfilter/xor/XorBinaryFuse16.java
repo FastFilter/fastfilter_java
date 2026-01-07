@@ -1,5 +1,7 @@
 package org.fastfilter.xor;
 
+import java.lang.reflect.Constructor;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.fastfilter.Filter;
@@ -20,19 +22,25 @@ public class XorBinaryFuse16 implements Filter {
     private final short[] fingerprints;
     private long seed;
 
-    public XorBinaryFuse16(int segmentCount, int segmentLength) {
+    private XorBinaryFuse16(int segmentCount, int segmentLength, long seed, short[] fingerprints) {
         if (segmentLength < 0 || Integer.bitCount(segmentLength) != 1) {
             throw new IllegalArgumentException("Segment length needs to be a power of 2, is " + segmentLength);
         }
         if (segmentCount <= 0) {
             throw new IllegalArgumentException("Illegal segment count: " + segmentCount);
         }
-        this.segmentLength = segmentLength;
+
         this.segmentCount = segmentCount;
-        this.segmentLengthMask = segmentLength - 1;
         this.segmentCountLength = segmentCount * segmentLength;
-        this.arrayLength = (segmentCount + ARITY - 1) * segmentLength;
-        this.fingerprints = new short[arrayLength];
+        this.segmentLength = segmentLength;
+        this.segmentLengthMask = segmentLength - 1;
+        this.arrayLength = fingerprints.length;
+        this.fingerprints = fingerprints;
+        this.seed = seed;
+    }
+
+    public XorBinaryFuse16(int segmentCount, int segmentLength) {
+        this(segmentCount, segmentLength, 0L, new short[(segmentCount + ARITY - 1) * segmentLength]);
     }
 
     public long getBitCount() {
@@ -143,8 +151,7 @@ public class XorBinaryFuse16 implements Filter {
                     countMask |= t2count[index];
                 }
             }
-            startPos = null;
-            if (countMask < 0) {
+          if (countMask < 0) {
                 // we have a possible counter overflow
                 continue mainloop;
             }
@@ -210,11 +217,8 @@ public class XorBinaryFuse16 implements Filter {
             // use a new random numbers
             seed = Hash.randomSeed();
         }
-        alone = null;
-        t2count = null;
-        t2hash = null;
 
-        for (int i = reverseOrderPos - 1; i >= 0; i--) {
+      for (int i = reverseOrderPos - 1; i >= 0; i--) {
             long hash = reverseOrder[i];
             int found = reverseH[i];
             short xor2 = fingerprint(hash);
@@ -261,4 +265,51 @@ public class XorBinaryFuse16 implements Filter {
         return (short) hash;
     }
 
+    @Override
+    public int getSerializedSize() {
+        return 2 * Integer.BYTES + Long.BYTES + Integer.BYTES + fingerprints.length * Short.BYTES;
+    }
+
+    @Override
+    public void serialize(ByteBuffer buffer) {
+        if (buffer.remaining() < getSerializedSize()) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+
+        buffer.putInt(segmentLength);
+        buffer.putInt(segmentCountLength);
+        buffer.putLong(seed);
+        buffer.putInt(fingerprints.length);
+        for (final short fp : fingerprints) {
+            buffer.putShort(fp);
+        }
+    }
+
+    public static XorBinaryFuse16 deserialize(ByteBuffer buffer) {
+        // Check minimum size for header (2 ints + 1 long + 1 int for length)
+        if (buffer.remaining() < 2 * Integer.BYTES + Long.BYTES + Integer.BYTES) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+
+        final int segmentLength = buffer.getInt();
+        final int segmentCountLength = buffer.getInt();
+        final long seed = buffer.getLong();
+
+        final int len = buffer.getInt();
+        
+        // Check if buffer has enough bytes for all fingerprints
+        if (buffer.remaining() < len * Short.BYTES) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+        
+        final short[] fingerprints = new short[len];
+        for (int i = 0; i < len; i++) {
+            fingerprints[i] = buffer.getShort();
+        }
+
+        // Calculate segmentCount from segmentCountLength and segmentLength
+        final int segmentCount = segmentCountLength / segmentLength;
+
+        return new XorBinaryFuse16(segmentCount, segmentLength, seed, fingerprints);
+    }
 }

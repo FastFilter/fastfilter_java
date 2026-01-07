@@ -1,5 +1,7 @@
 package org.fastfilter;
 
+import java.nio.ByteBuffer;
+
 /**
  * An approximate membership filter.
  */
@@ -14,7 +16,7 @@ public interface Filter {
     boolean mayContain(long key);
 
     /**
-     * Get the number of bits in thhe filter.
+     * Get the number of bits in the filter.
      *
      * @return the number of bits
      */
@@ -65,4 +67,22 @@ public interface Filter {
         return -1;
     }
 
+    /**
+     * Get the serialized size of the filter.
+     *
+     * @return the size in bytes
+     */
+    default int getSerializedSize() {
+        return -1;
+    }
+
+    /**
+     * Serializes the filter state into the provided {@code ByteBuffer}.
+     *
+     * @param buffer the byte buffer where the serialized state of the filter will be written
+     * @throws UnsupportedOperationException if the operation is not supported by the filter implementation
+     */
+    default void serialize(ByteBuffer buffer) {
+        throw new UnsupportedOperationException();
+    }
 }
