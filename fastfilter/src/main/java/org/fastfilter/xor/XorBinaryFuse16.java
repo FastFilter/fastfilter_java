@@ -48,7 +48,7 @@ public class XorBinaryFuse16 implements Filter {
     }
 
     static int calculateSegmentLength(int arity, int size) {
-        int segmentLength;
+        final int segmentLength;
         if (arity == 3) {
             segmentLength = 1 << (int) Math.floor(Math.log(size) / Math.log(3.33) + 2.11);
         } else if (arity == 4) {
@@ -61,7 +61,7 @@ public class XorBinaryFuse16 implements Filter {
     }
 
     static double calculateSizeFactor(int arity, int size) {
-        double sizeFactor;
+        final double sizeFactor;
         if (arity == 3) {
             sizeFactor = Math.max(1.125, 0.875 + 0.25 * Math.log(1000000) / Math.log(size));
         } else if (arity == 4) {
@@ -209,12 +209,10 @@ public class XorBinaryFuse16 implements Filter {
                 // if construction doesn't succeed eventually,
                 // then there is likely a problem with the hash function
                 // let us not crash the system:
-                for(int i = 0; i < fingerprints.length; i++) {
-                    fingerprints[i] = (short)0xFFFF;
-                }
+                Arrays.fill(fingerprints, (short) 0xFFFF);
                 return;
             }
-            // use a new random numbers
+            // use a new random number
             seed = Hash.randomSeed();
         }
 
