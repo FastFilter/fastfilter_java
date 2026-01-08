@@ -2,15 +2,10 @@ package org.fastfilter.utils;
 
 import java.util.Random;
 
-public final class Hash {
-    private Hash() {
-
-    }
-
+public class Hash {
     private static final Random random = new Random();
 
     public static void setSeed(long seed) {
-        // shouldn't we use ThreadLocalRandom.current() instead?
         random.setSeed(seed);
     }
 
@@ -27,7 +22,7 @@ public final class Hash {
     }
 
     /**
-     * Shrink the hash to value 0..n. Kind of like modulo, but using
+     * Shrink the hash to a value 0..n. Kind of like modulo, but using
      * multiplication and shift, which are faster to compute.
      *
      * @param hash the hash
@@ -41,7 +36,7 @@ public final class Hash {
 
     /**
      * Multiply two unsigned 64-bit values.
-     * See <a href="https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8188044">JDK-8188044</a>
+     * See https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8188044
      *
      * @param a the first value
      * @param b the second value

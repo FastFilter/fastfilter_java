@@ -1,9 +1,7 @@
 package org.fastfilter.xor;
 
-import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
@@ -61,7 +59,7 @@ public class XorBinaryFuse16 implements Filter {
     }
 
     static double calculateSizeFactor(int arity, int size) {
-        final double sizeFactor;
+        double sizeFactor;
         if (arity == 3) {
             sizeFactor = Math.max(1.125, 0.875 + 0.25 * Math.log(1000000) / Math.log(size));
         } else if (arity == 4) {
@@ -151,7 +149,8 @@ public class XorBinaryFuse16 implements Filter {
                     countMask |= t2count[index];
                 }
             }
-          if (countMask < 0) {
+            startPos = null;
+            if (countMask < 0) {
                 // we have a possible counter overflow
                 continue mainloop;
             }
@@ -216,7 +215,10 @@ public class XorBinaryFuse16 implements Filter {
             seed = Hash.randomSeed();
         }
 
-      for (int i = reverseOrderPos - 1; i >= 0; i--) {
+        alone = null;
+        t2count = null;
+        t2hash = null;
+        for (int i = reverseOrderPos - 1; i >= 0; i--) {
             long hash = reverseOrder[i];
             int found = reverseH[i];
             short xor2 = fingerprint(hash);
