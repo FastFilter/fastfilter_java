@@ -46,7 +46,7 @@ public class XorBinaryFuse16 implements Filter {
     }
 
     static int calculateSegmentLength(int arity, int size) {
-        final int segmentLength;
+        int segmentLength;
         if (arity == 3) {
             segmentLength = 1 << (int) Math.floor(Math.log(size) / Math.log(3.33) + 2.11);
         } else if (arity == 4) {
@@ -218,6 +218,7 @@ public class XorBinaryFuse16 implements Filter {
         alone = null;
         t2count = null;
         t2hash = null;
+
         for (int i = reverseOrderPos - 1; i >= 0; i--) {
             long hash = reverseOrder[i];
             int found = reverseH[i];
