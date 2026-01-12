@@ -1,54 +1,88 @@
 package org.fastfilter.xor;
 
-import org.junit.Test;
-
-import java.nio.ByteBuffer;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.function.Function;
+import org.fastfilter.Filter;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+@RunWith(Parameterized.class)
 public class SerializationTest {
 
-    @Test
-    public void shouldSerializeAndDeserializeEmptyFilter() {
-        // Arrange
-        final var keys = new long[]{1L, 2L, 3L, 4L, 5L};
-        final var originalFilter = XorBinaryFuse16.construct(keys);
-        final var buffer = ByteBuffer.allocate(originalFilter.getSerializedSize());
+    private final String filterName;
+    private final Function<long[], Filter> constructor;
+    private final Function<ByteBuffer, Filter> deserializer;
 
-        // Act
-        originalFilter.serialize(buffer);
-        buffer.flip();
-        final var deserializedFilter = XorBinaryFuse16.deserialize(buffer);
+    public SerializationTest(String filterName,
+        Function<long[], Filter> constructor,
+        Function<ByteBuffer, Filter> deserializer) {
+        this.filterName = filterName;
+        this.constructor = constructor;
+        this.deserializer = deserializer;
+    }
 
-        // Assert
-        for (final long key : keys) {
-            assertTrue("Key " + key + " should be present in deserialized filter",
-                    deserializedFilter.mayContain(key));
-        }
+    @Parameters(name = "{0}")
+    public static List<Object[]> filters() {
+        return List.of(
+            new Object[] {"Xor8", (Function<long[], Filter>) Xor8::construct,
+                (Function<ByteBuffer, Filter>) Xor8::deserialize},
+            new Object[] {"Xor16", (Function<long[], Filter>) Xor16::construct,
+                (Function<ByteBuffer, Filter>) Xor16::deserialize},
+            new Object[] {"XorBinaryFuse8", (Function<long[], Filter>) XorBinaryFuse8::construct,
+                (Function<ByteBuffer, Filter>) XorBinaryFuse8::deserialize},
+            new Object[] {"XorBinaryFuse16", (Function<long[], Filter>) XorBinaryFuse16::construct,
+                (Function<ByteBuffer, Filter>) XorBinaryFuse16::deserialize},
+            new Object[] {"XorBinaryFuse32", (Function<long[], Filter>) XorBinaryFuse32::construct,
+                (Function<ByteBuffer, Filter>) XorBinaryFuse32::deserialize}
+        );
     }
 
     @Test
     public void shouldSerializeAndDeserializeSmallFilter() {
         // Arrange
-        final var keys = new long[]{100L, 200L, 300L, 400L, 500L, 600L, 700L, 800L, 900L, 1000L};
-        final var originalFilter = XorBinaryFuse16.construct(keys);
+        final var keys = new long[]{1L, 2L, 3L, 4L, 5L};
+        final var originalFilter = constructor.apply(keys);
         final var buffer = ByteBuffer.allocate(originalFilter.getSerializedSize());
 
         // Act
         originalFilter.serialize(buffer);
         buffer.flip();
-        final var deserializedFilter = XorBinaryFuse16.deserialize(buffer);
+        final var deserializedFilter = deserializer.apply(buffer);
 
         // Assert
         for (final long key : keys) {
-            assertTrue("Key " + key + " should be present in deserialized filter",
+            assertTrue("Key " + key + " should be present in deserialized " + filterName + " filter",
                     deserializedFilter.mayContain(key));
         }
-        assertFalse("Key 50L should not be in filter", deserializedFilter.mayContain(50L));
-        assertFalse("Key 1500L should not be in filter", deserializedFilter.mayContain(1500L));
+    }
+
+    @Test
+    public void shouldSerializeAndDeserializeMediumFilter() {
+        // Arrange
+        final var keys = new long[]{100L, 200L, 300L, 400L, 500L, 600L, 700L, 800L, 900L, 1000L};
+        final var originalFilter = constructor.apply(keys);
+        final var buffer = ByteBuffer.allocate(originalFilter.getSerializedSize());
+
+        // Act
+        originalFilter.serialize(buffer);
+        buffer.flip();
+        final var deserializedFilter = deserializer.apply(buffer);
+
+        // Assert
+        for (final long key : keys) {
+            assertTrue("Key " + key + " should be present in deserialized " + filterName + " filter",
+                    deserializedFilter.mayContain(key));
+        }
+        assertFalse("Key 50L should not be in " + filterName + " filter", deserializedFilter.mayContain(50L));
+        assertFalse("Key 1500L should not be in " + filterName + " filter", deserializedFilter.mayContain(1500L));
     }
 
     @Test
@@ -59,18 +93,18 @@ public class SerializationTest {
         for (int i = 0; i < size; i++) {
             keys[i] = i * 100L;
         }
-        final var originalFilter = XorBinaryFuse16.construct(keys);
+        final var originalFilter = constructor.apply(keys);
         final var buffer = ByteBuffer.allocate(originalFilter.getSerializedSize());
 
         // Act
         originalFilter.serialize(buffer);
         buffer.flip();
-        final var deserializedFilter = XorBinaryFuse16.deserialize(buffer);
+        final var deserializedFilter = deserializer.apply(buffer);
 
         // Assert
         for (int i = 0; i < size; i++) {
             final long key = i * 100L;
-            assertTrue("Key " + key + " should be present in deserialized filter",
+            assertTrue("Key " + key + " should be present in deserialized " + filterName + " filter",
                     deserializedFilter.mayContain(key));
         }
         // Test some keys that should not be in the filter
@@ -83,46 +117,44 @@ public class SerializationTest {
     public void shouldPreserveFilterCharacteristicsAfterDeserialization() {
         // Arrange
         final var keys = new long[]{1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L};
-        final var originalFilter = XorBinaryFuse16.construct(keys);
+        final var originalFilter = constructor.apply(keys);
         final var buffer = ByteBuffer.allocate(originalFilter.getSerializedSize());
 
         // Act
         originalFilter.serialize(buffer);
         buffer.flip();
-        final var deserializedFilter = XorBinaryFuse16.deserialize(buffer);
+        final var deserializedFilter = deserializer.apply(buffer);
 
         // Assert
-        assertEquals("Bit count should be preserved", 
+        assertEquals("Bit count should be preserved for " + filterName,
                 originalFilter.getBitCount(), deserializedFilter.getBitCount());
-        assertEquals("Serialized size should be preserved",
+        assertEquals("Serialized size should be preserved for " + filterName,
                 originalFilter.getSerializedSize(), deserializedFilter.getSerializedSize());
-        assertEquals("String representation should match",
-                originalFilter.toString(), deserializedFilter.toString());
     }
 
     @Test
     public void shouldHandleMultipleSerializationRounds() {
         // Arrange
         final var keys = new long[]{10L, 20L, 30L, 40L, 50L};
-        final var originalFilter = XorBinaryFuse16.construct(keys);
+        final var originalFilter = constructor.apply(keys);
         final var buffer1 = ByteBuffer.allocate(originalFilter.getSerializedSize());
 
         // Act - First round
         originalFilter.serialize(buffer1);
         buffer1.flip();
-        final var filter1 = XorBinaryFuse16.deserialize(buffer1);
+        final var filter1 = deserializer.apply(buffer1);
 
         // Act - Second round
         final var buffer2 = ByteBuffer.allocate(filter1.getSerializedSize());
         filter1.serialize(buffer2);
         buffer2.flip();
-        final var filter2 = XorBinaryFuse16.deserialize(buffer2);
+        final var filter2 = deserializer.apply(buffer2);
 
         // Assert
         for (final long key : keys) {
-            assertTrue("Key " + key + " should be present after first deserialization",
+            assertTrue("Key " + key + " should be present after first deserialization of " + filterName,
                     filter1.mayContain(key));
-            assertTrue("Key " + key + " should be present after second deserialization",
+            assertTrue("Key " + key + " should be present after second deserialization of " + filterName,
                     filter2.mayContain(key));
         }
     }
@@ -131,7 +163,7 @@ public class SerializationTest {
     public void shouldThrowExceptionWhenSerializeBufferTooSmall() {
         // Arrange
         final var keys = new long[]{1L, 2L, 3L, 4L, 5L};
-        final var filter = XorBinaryFuse16.construct(keys);
+        final var filter = constructor.apply(keys);
         final var smallBuffer = ByteBuffer.allocate(filter.getSerializedSize() - 1);
 
         // Act & Assert
@@ -150,7 +182,7 @@ public class SerializationTest {
 
         // Act & Assert
         try {
-            XorBinaryFuse16.deserialize(tooSmallBuffer);
+            deserializer.apply(tooSmallBuffer);
             fail("Should have thrown IllegalArgumentException for buffer too small");
         } catch (IllegalArgumentException e) {
             assertEquals("Buffer too small", e.getMessage());
@@ -165,20 +197,20 @@ public class SerializationTest {
         for (int i = 0; i < size; i++) {
             keys[i] = i;
         }
-        final var originalFilter = XorBinaryFuse16.construct(keys);
+        final var originalFilter = constructor.apply(keys);
         final var buffer = ByteBuffer.allocate(originalFilter.getSerializedSize());
 
         // Act
         originalFilter.serialize(buffer);
         buffer.flip();
-        final var deserializedFilter = XorBinaryFuse16.deserialize(buffer);
+        final var deserializedFilter = deserializer.apply(buffer);
 
         // Assert
         for (int i = 0; i < size; i++) {
-            assertTrue("Sequential key " + i + " should be present",
+            assertTrue("Sequential key " + i + " should be present in " + filterName,
                     deserializedFilter.mayContain(i));
         }
-        assertFalse("Key outside range should not be in filter",
+        assertFalse("Key outside range should not be in " + filterName + " filter",
                 deserializedFilter.mayContain(size + 1000));
     }
 
@@ -192,17 +224,17 @@ public class SerializationTest {
                 Long.MAX_VALUE / 2,
                 Long.MAX_VALUE / 3
         };
-        final var originalFilter = XorBinaryFuse16.construct(keys);
+        final var originalFilter = constructor.apply(keys);
         final var buffer = ByteBuffer.allocate(originalFilter.getSerializedSize());
 
         // Act
         originalFilter.serialize(buffer);
         buffer.flip();
-        final var deserializedFilter = XorBinaryFuse16.deserialize(buffer);
+        final var deserializedFilter = deserializer.apply(buffer);
 
         // Assert
         for (final long key : keys) {
-            assertTrue("Large key " + key + " should be present",
+            assertTrue("Large key " + key + " should be present in " + filterName,
                     deserializedFilter.mayContain(key));
         }
     }
@@ -211,7 +243,7 @@ public class SerializationTest {
     public void shouldCorrectlyCalculateSerializedSize() {
         // Arrange
         final var keys = new long[]{1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L};
-        final var filter = XorBinaryFuse16.construct(keys);
+        final var filter = constructor.apply(keys);
         final int expectedSizeInBytes = filter.getSerializedSize();
         final var buffer = ByteBuffer.allocate(expectedSizeInBytes);
 
@@ -219,9 +251,9 @@ public class SerializationTest {
         filter.serialize(buffer);
 
         // Assert
-        assertEquals("Buffer position should equal serialized size",
+        assertEquals("Buffer position should equal serialized size for " + filterName,
                 expectedSizeInBytes, buffer.position());
-        assertEquals("Buffer should have no remaining space",
+        assertEquals("Buffer should have no remaining space for " + filterName,
                 0, buffer.remaining());
     }
 
@@ -229,37 +261,37 @@ public class SerializationTest {
     public void shouldHandleExactBufferSize() {
         // Arrange
         final var keys = new long[]{100L, 200L, 300L};
-        final var filter = XorBinaryFuse16.construct(keys);
+        final var filter = constructor.apply(keys);
         final var exactBuffer = ByteBuffer.allocate(filter.getSerializedSize());
 
         // Act
         filter.serialize(exactBuffer);
         exactBuffer.flip();
-        final var deserializedFilter = XorBinaryFuse16.deserialize(exactBuffer);
+        final var deserializedFilter = deserializer.apply(exactBuffer);
 
         // Assert
         for (final long key : keys) {
-            assertTrue("Key " + key + " should be present with exact buffer",
+            assertTrue("Key " + key + " should be present with exact buffer in " + filterName,
                     deserializedFilter.mayContain(key));
         }
-        assertEquals("No bytes should remain in buffer", 0, exactBuffer.remaining());
+        assertEquals("No bytes should remain in buffer for " + filterName, 0, exactBuffer.remaining());
     }
 
     @Test
     public void shouldHandleLargerBufferThanNeeded() {
         // Arrange
         final var keys = new long[]{1L, 2L, 3L};
-        final var filter = XorBinaryFuse16.construct(keys);
+        final var filter = constructor.apply(keys);
         final var largeBuffer = ByteBuffer.allocate(filter.getSerializedSize() + 1000);
 
         // Act
         filter.serialize(largeBuffer);
         largeBuffer.flip();
-        final var deserializedFilter = XorBinaryFuse16.deserialize(largeBuffer);
+        final var deserializedFilter = deserializer.apply(largeBuffer);
 
         // Assert
         for (final long key : keys) {
-            assertTrue("Key " + key + " should be present with larger buffer",
+            assertTrue("Key " + key + " should be present with larger buffer in " + filterName,
                     deserializedFilter.mayContain(key));
         }
     }

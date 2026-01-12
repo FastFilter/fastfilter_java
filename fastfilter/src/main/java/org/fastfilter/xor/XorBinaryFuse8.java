@@ -1,5 +1,6 @@
 package org.fastfilter.xor;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.fastfilter.Filter;
@@ -20,19 +21,25 @@ public class XorBinaryFuse8 implements Filter {
     private final byte[] fingerprints;
     private long seed;
 
-    public XorBinaryFuse8(int segmentCount, int segmentLength) {
+    private XorBinaryFuse8(int segmentCount, int segmentLength, long seed, byte[] fingerprints) {
         if (segmentLength < 0 || Integer.bitCount(segmentLength) != 1) {
             throw new IllegalArgumentException("Segment length needs to be a power of 2, is " + segmentLength);
         }
         if (segmentCount <= 0) {
             throw new IllegalArgumentException("Illegal segment count: " + segmentCount);
         }
-        this.segmentLength = segmentLength;
+
         this.segmentCount = segmentCount;
-        this.segmentLengthMask = segmentLength - 1;
         this.segmentCountLength = segmentCount * segmentLength;
-        this.arrayLength = (segmentCount + ARITY - 1) * segmentLength;
-        this.fingerprints = new byte[arrayLength];
+        this.segmentLength = segmentLength;
+        this.segmentLengthMask = segmentLength - 1;
+        this.arrayLength = fingerprints.length;
+        this.fingerprints = fingerprints;
+        this.seed = seed;
+    }
+
+    public XorBinaryFuse8(int segmentCount, int segmentLength) {
+        this(segmentCount, segmentLength, 0L, new byte[(segmentCount + ARITY - 1) * segmentLength]);
     }
 
     public long getBitCount() {
@@ -261,4 +268,47 @@ public class XorBinaryFuse8 implements Filter {
         return (byte) hash;
     }
 
+    @Override
+    public int getSerializedSize() {
+        return 2 * Integer.BYTES + Long.BYTES + Integer.BYTES + fingerprints.length * Byte.BYTES;
+    }
+
+    @Override
+    public void serialize(ByteBuffer buffer) {
+        if (buffer.remaining() < getSerializedSize()) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+
+        buffer.putInt(segmentLength);
+        buffer.putInt(segmentCountLength);
+        buffer.putLong(seed);
+        buffer.putInt(fingerprints.length);
+        buffer.put(fingerprints);
+    }
+
+    public static XorBinaryFuse8 deserialize(ByteBuffer buffer) {
+        // Check minimum size for header (2 ints + 1 long + 1 int for length)
+        if (buffer.remaining() < 2 * Integer.BYTES + Long.BYTES + Integer.BYTES) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+
+        final int segmentLength = buffer.getInt();
+        final int segmentCountLength = buffer.getInt();
+        final long seed = buffer.getLong();
+
+        final int len = buffer.getInt();
+
+        // Check if buffer has enough bytes for all fingerprints
+        if (buffer.remaining() < len * Byte.BYTES) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+
+        final byte[] fingerprints = new byte[len];
+        buffer.get(fingerprints);
+
+        // Calculate segmentCount from segmentCountLength and segmentLength
+        final int segmentCount = segmentCountLength / segmentLength;
+
+        return new XorBinaryFuse8(segmentCount, segmentLength, seed, fingerprints);
+    }
 }
