@@ -1,5 +1,7 @@
 package org.fastfilter.xor;
 
+import java.nio.ByteBuffer;
+
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
@@ -143,4 +145,55 @@ public class Xor16 implements Filter {
         return (int) (hash & ((1 << BITS_PER_FINGERPRINT) - 1));
     }
 
+    private Xor16(int blockLength, int bitCount, long seed, short[] fingerprints) {
+        this.blockLength = blockLength;
+        this.bitCount = bitCount;
+        this.seed = seed;
+        this.fingerprints = fingerprints;
+    }
+
+    @Override
+    public int getSerializedSize() {
+        return Integer.BYTES + Long.BYTES + Integer.BYTES + fingerprints.length * Short.BYTES;
+    }
+
+    @Override
+    public void serialize(ByteBuffer buffer) {
+        if (buffer.remaining() < getSerializedSize()) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+
+        buffer.putInt(blockLength);
+        buffer.putLong(seed);
+        buffer.putInt(fingerprints.length);
+        for (final short fp : fingerprints) {
+            buffer.putShort(fp);
+        }
+    }
+
+    public static Xor16 deserialize(ByteBuffer buffer) {
+        // Check minimum size for header (1 int + 1 long + 1 int for length)
+        if (buffer.remaining() < Integer.BYTES + Long.BYTES + Integer.BYTES) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+
+        final int blockLength = buffer.getInt();
+        final long seed = buffer.getLong();
+
+        final int len = buffer.getInt();
+
+        // Check if buffer has enough bytes for all fingerprints
+        if (buffer.remaining() < len * Short.BYTES) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+
+        final short[] fingerprints = new short[len];
+        for (int i = 0; i < len; i++) {
+            fingerprints[i] = buffer.getShort();
+        }
+
+        final int bitCount = len * BITS_PER_FINGERPRINT;
+
+        return new Xor16(blockLength, bitCount, seed, fingerprints);
+    }
 }
