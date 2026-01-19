@@ -27,13 +27,46 @@ The following additional types are implemented, but less tested:
 
 ## Usage
 
-When using Maven:
+### Maven
+
+When using Maven: The latest version, 1.0.4, is not yet available on Maven central, see [issue #48](https://github.com/FastFilter/fastfilter_java/issues/48). However, it is available at https://jitpack.io/:
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
     <dependency>
-      <groupId>io.github.fastfilter</groupId>
-      <artifactId>fastfilter</artifactId>
-      <version>1.0.4</version>
+        <groupId>io.github.fastfilter</groupId>
+        <artifactId>fastfilter</artifactId>
+        <version>1.0.4</version>
     </dependency>
+
+### Gradle
+
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://jitpack.io'
+        }
+    }
+
+    dependencies {
+        implementation 'io.github.fastfilter.fastfilter_java:fastfilter:1.0.4'
+    }
+
+### Maven Central (version 1.0.2)
+
+The older version, 1.0.2, is available on Maven central.
+
+    <dependency>
+        <groupId>io.github.fastfilter</groupId>
+        <artifactId>fastfilter</artifactId>
+        <version>1.0.2</version>
+    </dependency>
+
 
 # Other Xor Filter Implementations
 
