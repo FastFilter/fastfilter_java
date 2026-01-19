@@ -27,6 +27,62 @@ The following additional types are implemented, but less tested:
 
 ## Usage
 
+
+To use the XOR and Binary Fuse filters, first prepare an array of keys, then construct the filter:
+
+```java
+import org.fastfilter.xor.Xor8;
+import org.fastfilter.xor.Xor16;
+import org.fastfilter.xor.XorBinaryFuse8;
+import org.fastfilter.xor.XorBinaryFuse16;
+
+// Example keys
+long[] keys = {1, 2, 3, 4, 5};
+
+// Construct XOR filters
+Xor8 xor8 = Xor8.construct(keys);
+Xor16 xor16 = Xor16.construct(keys);
+XorBinaryFuse8 xorBinaryFuse8 = XorBinaryFuse8.construct(keys);
+XorBinaryFuse16 xorBinaryFuse16 = XorBinaryFuse16.construct(keys);
+
+// Check membership
+boolean mightContain = xor8.mayContain(1L); // true
+boolean mightContain2 = xor8.mayContain(6L); // false (with high probability)
+```
+
+All filters implement the `Filter` interface and support the `mayContain(long key)` method to check if a key might be in the set. Note that false positives are possible, but false negatives are not.
+
+
+### Serialization and Deserialization
+
+Filters can be serialized to and deserialized from a `ByteBuffer` for persistence or transmission:
+
+```java
+import java.nio.ByteBuffer;
+
+// Assuming you have a constructed filter, e.g., Xor8 xor8 = Xor8.construct(keys);
+
+// Get the serialized size
+int size = xor8.getSerializedSize();
+
+// Allocate a ByteBuffer
+ByteBuffer buffer = ByteBuffer.allocate(size);
+
+// Serialize the filter
+xor8.serialize(buffer);
+
+// Prepare buffer for reading (flip)
+buffer.flip();
+
+// Deserialize the filter
+Xor8 deserializedXor8 = Xor8.deserialize(buffer);
+
+// The deserialized filter behaves identically to the original
+boolean result = deserializedXor8.mayContain(1L); // true
+```
+
+This allows saving filters to files, databases, or sending them over networks.
+
 ### Maven
 
 When using Maven: The latest version, 1.0.4, is not yet available on Maven central, see [issue #48](https://github.com/FastFilter/fastfilter_java/issues/48). However, it is available at https://jitpack.io/:
