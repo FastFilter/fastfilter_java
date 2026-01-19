@@ -6,7 +6,10 @@ import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
 /**
+ * The Xor16 filter implementation is experimental. We recommend using XorBinaryFuse16 instead. Use at your own risks.
+ * 
  * The xor filter, a new algorithm that can replace a Bloom filter.
+ * Thomas Mueller Graf,  Daniel Lemire, [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters](https://arxiv.org/abs/1912.08258), Journal of Experimental Algorithmics 25 (1), 2020. DOI: 10.1145/3376122
  *
  * It needs 1.23 log(1/fpp) bits per key. It is related to the BDZ algorithm [1]
  * (a minimal perfect hash function algorithm).

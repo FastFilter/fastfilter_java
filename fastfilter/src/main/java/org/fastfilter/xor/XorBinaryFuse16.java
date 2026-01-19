@@ -7,6 +7,7 @@ import org.fastfilter.utils.Hash;
 
 /**
  * The xor binary fuse filter, a new algorithm that can replace a Bloom filter.
+ * Thomas Mueller Graf, Daniel Lemire, [Binary Fuse Filters: Fast and Smaller Than Xor Filters](http://arxiv.org/abs/2201.01174), 	Journal of Experimental Algorithmics 27, 2022. DOI: 10.1145/3510449  
  */
 public class XorBinaryFuse16 implements Filter {
 
@@ -78,6 +79,15 @@ public class XorBinaryFuse16 implements Filter {
         return x;
     }
 
+    /**
+     * Constructs a new XorBinaryFuse16 filter from the given array of keys.
+     * The filter is designed to have a low false positive rate while being space-efficient.
+     * The keys array should contain unique values. The array may be mutated during construction
+     * (e.g., sorted and deduplicated) if the algorithm detects that there are likely too many duplicates.
+     *
+     * @param keys the array of long keys to add to the filter
+     * @return a new XorBinaryFuse16 filter containing all the keys
+     */
     public static XorBinaryFuse16 construct(long[] keys) {
         int size = keys.length;
         int segmentLength = calculateSegmentLength(ARITY, size);
@@ -102,6 +112,7 @@ public class XorBinaryFuse16 implements Filter {
         long[] reverseOrder = new long[size + 1];
         byte[] reverseH = new byte[size];
         int reverseOrderPos = 0;
+        boolean duplicated = false;
 
         // the lowest 2 bits are the h index (0, 1, or 2)
         // so we only have 6 bits for counting;
@@ -117,7 +128,6 @@ public class XorBinaryFuse16 implements Filter {
             blockBits++;
         }
         int block = 1 << blockBits;
-        mainloop:
         while (true) {
             reverseOrder[size] = 1;
             int[] startPos = new int[block];
@@ -126,7 +136,8 @@ public class XorBinaryFuse16 implements Filter {
             }
             // counting sort
 
-            for (long key : keys) {
+            for(int i = 0; i < size; i++) {
+                long key = keys[i];
                 long hash = Hash.hash64(key, seed);
                 int segmentIndex = (int) (hash >>> (64 - blockBits));
                 // We only overwrite when the hash was zero. Zero hash values
@@ -150,52 +161,48 @@ public class XorBinaryFuse16 implements Filter {
                 }
             }
             startPos = null;
-            if (countMask < 0) {
-                // we have a possible counter overflow
-                continue mainloop;
-            }
+            if (countMask >= 0) {
+                reverseOrderPos = 0;
+                int alonePos = 0;
+                for (int i = 0; i < arrayLength; i++) {
+                    alone[alonePos] = i;
+                    int inc = (t2count[i] >> 2) == 1 ? 1 : 0;
+                    alonePos += inc;
+                }
 
-            reverseOrderPos = 0;
-            int alonePos = 0;
-            for (int i = 0; i < arrayLength; i++) {
-                alone[alonePos] = i;
-                int inc = (t2count[i] >> 2) == 1 ? 1 : 0;
-                alonePos += inc;
-            }
+                while (alonePos > 0) {
+                    alonePos--;
+                    int index = alone[alonePos];
+                    if ((t2count[index] >> 2) == 1) {
+                        // It is still there!
+                        long hash = t2hash[index];
+                        byte found = (byte) (t2count[index] & 3);
 
-            while (alonePos > 0) {
-                alonePos--;
-                int index = alone[alonePos];
-                if ((t2count[index] >> 2) == 1) {
-                    // It is still there!
-                    long hash = t2hash[index];
-                    byte found = (byte) (t2count[index] & 3);
+                        reverseH[reverseOrderPos] = found;
+                        reverseOrder[reverseOrderPos] = hash;
 
-                    reverseH[reverseOrderPos] = found;
-                    reverseOrder[reverseOrderPos] = hash;
+                        h012[0] = getHashFromHash(hash, 0);
+                        h012[1] = getHashFromHash(hash, 1);
+                        h012[2] = getHashFromHash(hash, 2);
 
-                    h012[0] = getHashFromHash(hash, 0);
-                    h012[1] = getHashFromHash(hash, 1);
-                    h012[2] = getHashFromHash(hash, 2);
+                        int index3 = h012[mod3(found + 1)];
+                        alone[alonePos] = index3;
+                        alonePos += ((t2count[index3] >> 2) == 2 ? 1 : 0);
+                        t2count[index3] -= 4;
+                        t2count[index3] ^= mod3(found + 1);
+                        t2hash[index3] ^= hash;
 
-                    int index3 = h012[mod3(found + 1)];
-                    alone[alonePos] = index3;
-                    alonePos += ((t2count[index3] >> 2) == 2 ? 1 : 0);
-                    t2count[index3] -= 4;
-                    t2count[index3] ^= mod3(found + 1);
-                    t2hash[index3] ^= hash;
+                        index3 = h012[mod3(found + 2)];
+                        alone[alonePos] = index3;
+                        alonePos += ((t2count[index3] >> 2) == 2 ? 1 : 0);
+                        t2count[index3] -= 4;
+                        t2count[index3] ^= mod3(found + 2);
+                        t2hash[index3] ^= hash;
 
-                    index3 = h012[mod3(found + 2)];
-                    alone[alonePos] = index3;
-                    alonePos += ((t2count[index3] >> 2) == 2 ? 1 : 0);
-                    t2count[index3] -= 4;
-                    t2count[index3] ^= mod3(found + 2);
-                    t2hash[index3] ^= hash;
-
-                    reverseOrderPos++;
+                        reverseOrderPos++;
+                    }
                 }
             }
-
             if (reverseOrderPos == size) {
                 break;
             }
@@ -203,7 +210,13 @@ public class XorBinaryFuse16 implements Filter {
             Arrays.fill(t2count, (byte) 0);
             Arrays.fill(t2hash, 0);
             Arrays.fill(reverseOrder, 0);
-
+            // If we reach 10 passes, we assume that there are too many duplicates
+            // in the input key set. We then sort and remove duplicates in place.
+            // This should almost never happen.
+            if (countMask < 0 && !duplicated) {
+                size = Deduplicator.sortAndRemoveDup(keys, size);
+                duplicated = true;
+            }
             if (hashIndex > 100) {
                 // if construction doesn't succeed eventually,
                 // then there is likely a problem with the hash function.
