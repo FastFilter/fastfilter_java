@@ -200,12 +200,9 @@ public class XorBinaryFuse8 implements Filter {
 
             if (hashIndex > 100) {
                 // if construction doesn't succeed eventually,
-                // then there is likely a problem with the hash function
-                // let us not crash the system:
-                for(int i = 0; i < fingerprints.length; i++) {
-                    fingerprints[i] = (byte)0xFF;
-                }
-                return;
+                // then there is likely a problem with the hash function.
+                // It's better fail that either produce non-functional or incorrect filter.
+                throw new IllegalArgumentException("could not construct filter");
             }
             // use a new random numbers
             seed = Hash.randomSeed();
