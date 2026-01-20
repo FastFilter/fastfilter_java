@@ -22,10 +22,66 @@ The following additional types are implemented, but less tested:
 
 ## Reference
 
-* Thomas Mueller Graf, Daniel Lemire, [Binary Fuse Filters: Fast and Smaller Than Xor Filters](http://arxiv.org/abs/2201.01174), 	Journal of Experimental Algorithmics 27, 2022. DOI: 10.1145/3510449   
+* Thomas Mueller Graf, Daniel Lemire, [Binary Fuse Filters: Fast and Smaller Than Xor Filters](http://arxiv.org/abs/2201.01174), 	Journal of Experimental Algorithmics 27, 2022. DOI: 10.1145/3510449
 * Thomas Mueller Graf,  Daniel Lemire, [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters](https://arxiv.org/abs/1912.08258), Journal of Experimental Algorithmics 25 (1), 2020. DOI: 10.1145/3376122
 
 ## Usage
+
+
+To use the XOR and Binary Fuse filters, first prepare an array of keys, then construct the filter:
+
+```java
+import org.fastfilter.xor.XorBinaryFuse8;
+import org.fastfilter.xor.XorBinaryFuse16;
+
+// Example keys
+long[] keys = {1, 2, 3, 4, 5};
+
+// Construct binary fuse filters=
+XorBinaryFuse8 xorBinaryFuse8 = XorBinaryFuse8.construct(keys);
+XorBinaryFuse16 xorBinaryFuse16 = XorBinaryFuse16.construct(keys);
+
+// Check membership
+boolean mightContain = xor8.mayContain(1L); // true
+boolean mightContain2 = xor8.mayContain(6L); // false (with high probability)
+```
+
+All filters implement the `Filter` interface and support the `mayContain(long key)` method to check if a key might be in the set. Note that false positives are possible, but false negatives are not.
+
+### Generating the Hash Values
+
+The library is written to process `long` values that are meant to be hash values. Though you do not need to use
+cryptographically strong hashing, you should make sure that your hash functions are reasonable: they should
+not generate too many collisions (two objects mapping to the same `long` value).
+
+### Serialization and Deserialization
+
+Filters can be serialized to and deserialized from a `ByteBuffer` for persistence or transmission:
+
+```java
+import java.nio.ByteBuffer;
+
+// Assuming you have a constructed filter
+
+// Get the serialized size
+int size = XorBinaryFuse8.getSerializedSize();
+
+// Allocate a ByteBuffer
+ByteBuffer buffer = ByteBuffer.allocate(size);
+
+// Serialize the filter
+XorBinaryFuse8.serialize(buffer);
+
+// Prepare buffer for reading (flip)
+buffer.flip();
+
+// Deserialize the filter
+XorBinaryFuse8 deserializedXorBinaryFuse8 = Xor8.deserialize(buffer);
+
+// The deserialized filter behaves identically to the original
+```
+
+This allows saving filters to files, databases, or sending them over networks.
 
 ### Maven
 

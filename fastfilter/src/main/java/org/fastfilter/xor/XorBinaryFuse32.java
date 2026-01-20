@@ -7,7 +7,8 @@ import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
 /**
- * The xor binary fuse filter, a new algorithm that can replace a Bloom filter.
+ * The XorBinaryFuse32 filter is experimental. We recommend using XorBinaryFuse8 or XorBinaryFuse16 instead.
+ * Use at your own risks.
  */
 public class XorBinaryFuse32 implements Filter {
 
