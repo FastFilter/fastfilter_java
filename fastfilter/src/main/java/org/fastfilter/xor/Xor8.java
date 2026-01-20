@@ -164,6 +164,7 @@ public class Xor8 implements Filter {
         return (int) (hash & ((1 << BITS_PER_FINGERPRINT) - 1));
     }
 
+    @Deprecated
     public byte[] getData() {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -177,6 +178,7 @@ public class Xor8 implements Filter {
         }
     }
 
+    @Deprecated
     public Xor8(InputStream in) {
         try {
             DataInputStream din = new DataInputStream(in);
