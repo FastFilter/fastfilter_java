@@ -5,6 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Function;
@@ -20,28 +24,36 @@ public class SerializationTest {
     private final String filterName;
     private final Function<long[], Filter> constructor;
     private final Function<ByteBuffer, Filter> deserializer;
+    private final StreamDeserializer streamDeserializer;
 
     public SerializationTest(String filterName,
         Function<long[], Filter> constructor,
-        Function<ByteBuffer, Filter> deserializer) {
+        Function<ByteBuffer, Filter> deserializer,
+        StreamDeserializer streamDeserializer) {
         this.filterName = filterName;
         this.constructor = constructor;
         this.deserializer = deserializer;
+        this.streamDeserializer = streamDeserializer;
     }
 
     @Parameters(name = "{0}")
     public static List<Object[]> filters() {
         return List.of(
             new Object[] {"Xor8", (Function<long[], Filter>) Xor8::construct,
-                (Function<ByteBuffer, Filter>) Xor8::deserialize},
+                (Function<ByteBuffer, Filter>) Xor8::deserialize,
+                (StreamDeserializer) Xor8::deserialize},
             new Object[] {"Xor16", (Function<long[], Filter>) Xor16::construct,
-                (Function<ByteBuffer, Filter>) Xor16::deserialize},
+                (Function<ByteBuffer, Filter>) Xor16::deserialize,
+                (StreamDeserializer) Xor16::deserialize},
             new Object[] {"XorBinaryFuse8", (Function<long[], Filter>) XorBinaryFuse8::construct,
-                (Function<ByteBuffer, Filter>) XorBinaryFuse8::deserialize},
+                (Function<ByteBuffer, Filter>) XorBinaryFuse8::deserialize,
+                (StreamDeserializer) XorBinaryFuse8::deserialize},
             new Object[] {"XorBinaryFuse16", (Function<long[], Filter>) XorBinaryFuse16::construct,
-                (Function<ByteBuffer, Filter>) XorBinaryFuse16::deserialize},
+                (Function<ByteBuffer, Filter>) XorBinaryFuse16::deserialize,
+                (StreamDeserializer) XorBinaryFuse16::deserialize},
             new Object[] {"XorBinaryFuse32", (Function<long[], Filter>) XorBinaryFuse32::construct,
-                (Function<ByteBuffer, Filter>) XorBinaryFuse32::deserialize}
+                (Function<ByteBuffer, Filter>) XorBinaryFuse32::deserialize,
+                (StreamDeserializer) XorBinaryFuse32::deserialize}
         );
     }
 
@@ -83,6 +95,52 @@ public class SerializationTest {
         }
         assertFalse("Key 50L should not be in " + filterName + " filter", deserializedFilter.mayContain(50L));
         assertFalse("Key 1500L should not be in " + filterName + " filter", deserializedFilter.mayContain(1500L));
+    }
+
+    @Test
+    public void shouldSerializeAndDeserializeMediumFilterFromStream() throws IOException {
+        // Arrange
+        final var keys = new long[]{100L, 200L, 300L, 400L, 500L, 600L, 700L, 800L, 900L, 1000L};
+        final var originalFilter = constructor.apply(keys);
+        final var buffer = ByteBuffer.allocate(originalFilter.getSerializedSize());
+
+        // Act
+        originalFilter.serialize(buffer);
+        final var input = new ByteArrayInputStream(buffer.array());
+        final var deserializedFilter = streamDeserializer.deserialize(input);
+
+        // Assert
+        for (final long key : keys) {
+            assertTrue("Key " + key + " should be present in deserialized " + filterName + " filter",
+                    deserializedFilter.mayContain(key));
+        }
+        assertFalse("Key 50L should not be in " + filterName + " filter", deserializedFilter.mayContain(50L));
+        assertFalse("Key 1500L should not be in " + filterName + " filter", deserializedFilter.mayContain(1500L));
+    }
+
+    @Test
+    public void shouldSerializeToStreamAndDeserializeFromByteBuffer() throws IOException {
+        // Arrange
+        final var keys = new long[]{10L, 20L, 30L, 40L, 50L, 60L, 70L, 80L};
+        final var originalFilter = constructor.apply(keys);
+        final var out = new ByteArrayOutputStream();
+
+        // Act
+        originalFilter.serialize(out);
+        final var buffer = ByteBuffer.wrap(out.toByteArray());
+        final var deserializedFilter = deserializer.apply(buffer);
+
+        // Assert
+        for (final long key : keys) {
+            assertTrue("Key " + key + " should be present in deserialized " + filterName + " filter",
+                    deserializedFilter.mayContain(key));
+        }
+        assertFalse("Key 15L should not be in " + filterName + " filter", deserializedFilter.mayContain(15L));
+    }
+
+    @FunctionalInterface
+    private interface StreamDeserializer {
+        Filter deserialize(InputStream in) throws IOException;
     }
 
     @Test
