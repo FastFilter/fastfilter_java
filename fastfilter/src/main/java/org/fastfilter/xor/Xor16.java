@@ -1,5 +1,10 @@
 package org.fastfilter.xor;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.fastfilter.Filter;
@@ -197,6 +202,29 @@ public class Xor16 implements Filter {
 
         final int bitCount = len * BITS_PER_FINGERPRINT;
 
+        return new Xor16(blockLength, bitCount, seed, fingerprints);
+    }
+
+    public void serialize(OutputStream out) throws IOException {
+        DataOutputStream dout = new DataOutputStream(out);
+        dout.writeInt(blockLength);
+        dout.writeLong(seed);
+        dout.writeInt(fingerprints.length);
+        for (final short fp : fingerprints) {
+            dout.writeShort(fp);
+        }
+    }
+
+    public static Xor16 deserialize(InputStream in) throws IOException {
+        DataInputStream din = new DataInputStream(in);
+        final int blockLength = din.readInt();
+        final long seed = din.readLong();
+        final int len = din.readInt();
+        final short[] fingerprints = new short[len];
+        for (int i = 0; i < len; i++) {
+            fingerprints[i] = din.readShort();
+        }
+        final int bitCount = len * BITS_PER_FINGERPRINT;
         return new Xor16(blockLength, bitCount, seed, fingerprints);
     }
 }

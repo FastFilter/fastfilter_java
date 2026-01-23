@@ -241,4 +241,22 @@ public class Xor8 implements Filter {
 
         return new Xor8(size, seed, fingerprints);
     }
+
+    public void serialize(OutputStream out) throws IOException {
+        DataOutputStream dout = new DataOutputStream(out);
+        dout.writeInt(size);
+        dout.writeLong(seed);
+        dout.writeInt(fingerprints.length);
+        dout.write(fingerprints);
+    }
+
+    public static Xor8 deserialize(InputStream in) throws IOException {
+        DataInputStream din = new DataInputStream(in);
+        final int size = din.readInt();
+        final long seed = din.readLong();
+        final int len = din.readInt();
+        final byte[] fingerprints = new byte[len];
+        din.readFully(fingerprints);
+        return new Xor8(size, seed, fingerprints);
+    }
 }

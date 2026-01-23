@@ -1,5 +1,10 @@
 package org.fastfilter.xor;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import org.fastfilter.Filter;
@@ -323,6 +328,31 @@ public class XorBinaryFuse16 implements Filter {
         // Calculate segmentCount from segmentCountLength and segmentLength
         final int segmentCount = segmentCountLength / segmentLength;
 
+        return new XorBinaryFuse16(segmentCount, segmentLength, seed, fingerprints);
+    }
+
+    public void serialize(OutputStream out) throws IOException {
+        DataOutputStream dout = new DataOutputStream(out);
+        dout.writeInt(segmentLength);
+        dout.writeInt(segmentCountLength);
+        dout.writeLong(seed);
+        dout.writeInt(fingerprints.length);
+        for (final short fp : fingerprints) {
+            dout.writeShort(fp);
+        }
+    }
+
+    public static XorBinaryFuse16 deserialize(InputStream in) throws IOException {
+        DataInputStream din = new DataInputStream(in);
+        final int segmentLength = din.readInt();
+        final int segmentCountLength = din.readInt();
+        final long seed = din.readLong();
+        final int len = din.readInt();
+        final short[] fingerprints = new short[len];
+        for (int i = 0; i < len; i++) {
+            fingerprints[i] = din.readShort();
+        }
+        final int segmentCount = segmentCountLength / segmentLength;
         return new XorBinaryFuse16(segmentCount, segmentLength, seed, fingerprints);
     }
 }

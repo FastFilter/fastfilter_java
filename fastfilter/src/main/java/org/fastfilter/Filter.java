@@ -1,5 +1,7 @@
 package org.fastfilter;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -83,6 +85,17 @@ public interface Filter {
      * @throws UnsupportedOperationException if the operation is not supported by the filter implementation
      */
     default void serialize(ByteBuffer buffer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Serializes the filter state into the provided {@code OutputStream}.
+     *
+     * @param out the output stream where the serialized state of the filter will be written
+     * @throws IOException if writing to the stream fails
+     * @throws UnsupportedOperationException if the operation is not supported by the filter implementation
+     */
+    default void serialize(OutputStream out) throws IOException {
         throw new UnsupportedOperationException();
     }
 }
