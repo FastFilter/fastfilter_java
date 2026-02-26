@@ -97,7 +97,7 @@ When using Maven: The latest version, 1.0.4, is not yet available on Maven centr
     <dependency>
         <groupId>io.github.fastfilter</groupId>
         <artifactId>fastfilter</artifactId>
-        <version>1.0.4</version>
+        <version>1.0.5</version>
     </dependency>
 
 ### Gradle
@@ -110,7 +110,7 @@ When using Maven: The latest version, 1.0.4, is not yet available on Maven centr
     }
 
     dependencies {
-        implementation 'io.github.fastfilter.fastfilter_java:fastfilter:1.0.4'
+        implementation 'io.github.fastfilter.fastfilter_java:fastfilter:1.0.5'
     }
 
 ### Maven Central (version 1.0.2)
