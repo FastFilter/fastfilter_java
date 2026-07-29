@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Function;
 import org.fastfilter.Filter;
+import org.fastfilter.ribbon.RibbonFilter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -53,7 +54,10 @@ public class SerializationTest {
                 (StreamDeserializer) XorBinaryFuse16::deserialize},
             new Object[] {"XorBinaryFuse32", (Function<long[], Filter>) XorBinaryFuse32::construct,
                 (Function<ByteBuffer, Filter>) XorBinaryFuse32::deserialize,
-                (StreamDeserializer) XorBinaryFuse32::deserialize}
+                (StreamDeserializer) XorBinaryFuse32::deserialize},
+            new Object[] {"RibbonFilter", (Function<long[], Filter>) RibbonFilter::construct,
+                (Function<ByteBuffer, Filter>) RibbonFilter::deserialize,
+                (StreamDeserializer) RibbonFilter::deserialize}
         );
     }
 

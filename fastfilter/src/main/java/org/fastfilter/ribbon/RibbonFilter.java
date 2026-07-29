@@ -1,5 +1,12 @@
 package org.fastfilter.ribbon;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+
 import org.fastfilter.Filter;
 import org.fastfilter.utils.Hash;
 
@@ -140,5 +147,67 @@ public class RibbonFilter implements Filter {
     @Override
     public long getBitCount() {
         return bitCount;
+    }
+
+    @Override
+    public int getSerializedSize() {
+        return Integer.BYTES * 5 + Long.BYTES + solution.length * Byte.BYTES;
+    }
+
+    @Override
+    public void serialize(ByteBuffer buffer) {
+        if (buffer.remaining() < getSerializedSize()) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+        buffer.putInt(size);
+        buffer.putInt(resultBits);
+        buffer.putInt(numSlots);
+        buffer.putInt(numStarts);
+        buffer.putLong(seed);
+        buffer.putInt(solution.length);
+        buffer.put(solution);
+    }
+
+    public static RibbonFilter deserialize(ByteBuffer buffer) {
+        if (buffer.remaining() < Integer.BYTES * 5 + Long.BYTES) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+        final int size = buffer.getInt();
+        final int resultBits = buffer.getInt();
+        final int numSlots = buffer.getInt();
+        final int numStarts = buffer.getInt();
+        final long seed = buffer.getLong();
+        final int len = buffer.getInt();
+        if (buffer.remaining() < len * Byte.BYTES) {
+            throw new IllegalArgumentException("Buffer too small");
+        }
+        final byte[] solution = new byte[len];
+        buffer.get(solution);
+        return new RibbonFilter(size, resultBits, numSlots, numStarts, seed, solution);
+    }
+
+    @Override
+    public void serialize(OutputStream out) throws IOException {
+        DataOutputStream dout = new DataOutputStream(out);
+        dout.writeInt(size);
+        dout.writeInt(resultBits);
+        dout.writeInt(numSlots);
+        dout.writeInt(numStarts);
+        dout.writeLong(seed);
+        dout.writeInt(solution.length);
+        dout.write(solution);
+    }
+
+    public static RibbonFilter deserialize(InputStream in) throws IOException {
+        DataInputStream din = new DataInputStream(in);
+        final int size = din.readInt();
+        final int resultBits = din.readInt();
+        final int numSlots = din.readInt();
+        final int numStarts = din.readInt();
+        final long seed = din.readLong();
+        final int len = din.readInt();
+        final byte[] solution = new byte[len];
+        din.readFully(solution);
+        return new RibbonFilter(size, resultBits, numSlots, numStarts, seed, solution);
     }
 }
