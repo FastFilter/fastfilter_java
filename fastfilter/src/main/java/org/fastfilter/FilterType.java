@@ -87,6 +87,14 @@ public enum FilterType {
             return XorPlus8.construct(keys);
         }
     },
+    RIBBON {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            // Fixed-width filter (like XOR_8/XOR_16/XOR_PLUS_8 above): setting
+            // is ignored, matching the r=8 default used for the Xor8 comparison.
+            return org.fastfilter.ribbon.RibbonFilter.construct(keys);
+        }
+    },
     CUCKOO_8 {
         @Override
         public Filter construct(long[] keys, int setting) {

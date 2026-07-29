@@ -11,6 +11,7 @@ import org.fastfilter.cuckoo.CuckooPlus8;
 import org.fastfilter.gcs.GolombCompressedSet;
 import org.fastfilter.gcs.GolombCompressedSet2;
 import org.fastfilter.mphf.MPHFilter;
+import org.fastfilter.ribbon.RibbonFilter;
 import org.fastfilter.xor.*;
 import org.fastfilter.xorplus.XorPlus8;
 
@@ -88,6 +89,12 @@ public enum TestFilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return XorBinaryFuse32.construct(keys);
+        }
+    },
+    RIBBON {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return RibbonFilter.construct(keys);
         }
     },
     CUCKOO_8 {
