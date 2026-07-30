@@ -8,6 +8,7 @@ import org.fastfilter.cuckoo.Cuckoo8;
 import org.fastfilter.cuckoo.CuckooPlus16;
 import org.fastfilter.cuckoo.CuckooPlus8;
 import org.fastfilter.gcs.GolombCompressedSet;
+import org.fastfilter.ribbon.RibbonNaiveFilter;
 import org.fastfilter.xor.*;
 import org.fastfilter.xorplus.XorPlus8;
 
@@ -85,6 +86,12 @@ public enum FilterType {
         @Override
         public Filter construct(long[] keys, int setting) {
             return XorPlus8.construct(keys);
+        }
+    },
+    RIBBON_NAIVE {
+        @Override
+        public Filter construct(long[] keys, int setting) {
+            return RibbonNaiveFilter.construct(keys);
         }
     },
     CUCKOO_8 {
