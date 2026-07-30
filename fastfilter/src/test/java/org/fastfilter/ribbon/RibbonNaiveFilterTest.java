@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 import org.fastfilter.utils.RandomGenerator;
 import org.junit.Test;
 
-public class RibbonFilterTest {
+public class RibbonNaiveFilterTest {
 
     @Test
     public void noFalseNegativesSmall() {
@@ -29,7 +29,7 @@ public class RibbonFilterTest {
             keys[i] = list[i];
             nonKeys[i] = list[i + len];
         }
-        RibbonFilter filter = RibbonFilter.construct(keys);
+        RibbonNaiveFilter filter = RibbonNaiveFilter.construct(keys);
         int falsePositives = 0;
         for (long nonKey : nonKeys) {
             if (filter.mayContain(nonKey)) {
@@ -44,7 +44,7 @@ public class RibbonFilterTest {
     private void assertNoFalseNegatives(int len) {
         long[] keys = new long[len];
         RandomGenerator.createRandomUniqueListFast(keys, 0);
-        RibbonFilter filter = RibbonFilter.construct(keys);
+        RibbonNaiveFilter filter = RibbonNaiveFilter.construct(keys);
         for (long key : keys) {
             assertTrue("key " + key + " should be present", filter.mayContain(key));
         }

@@ -20,7 +20,7 @@ import org.fastfilter.utils.Hash;
  * if all seed attempts at a given slot count fail - with more slots.
  *
  */
-public class RibbonFilter implements Filter {
+public class RibbonNaiveFilter implements Filter {
 
     private static final int DEFAULT_RESULT_BITS = 8;
     private static final int COEFF_BITS = 64;
@@ -36,7 +36,7 @@ public class RibbonFilter implements Filter {
     private final byte[] solution;
     private final int bitCount;
 
-    private RibbonFilter(int size, int resultBits, int numSlots, int numStarts, long seed, byte[] solution) {
+    private RibbonNaiveFilter(int size, int resultBits, int numSlots, int numStarts, long seed, byte[] solution) {
         this.size = size;
         this.resultBits = resultBits;
         this.numSlots = numSlots;
@@ -46,11 +46,11 @@ public class RibbonFilter implements Filter {
         this.bitCount = numSlots * resultBits;
     }
 
-    public static RibbonFilter construct(long[] keys) {
+    public static RibbonNaiveFilter construct(long[] keys) {
         return construct(keys, DEFAULT_RESULT_BITS);
     }
 
-    public static RibbonFilter construct(long[] keys, int resultBits) {
+    public static RibbonNaiveFilter construct(long[] keys, int resultBits) {
         if (resultBits < 1 || resultBits > 8) {
             throw new IllegalArgumentException("resultBits must be between 1 and 8");
         }
@@ -68,7 +68,7 @@ public class RibbonFilter implements Filter {
                 byte[] result = new byte[numSlots];
                 if (band(keys, seed, numStarts, resultBits, coeff, result)) {
                     byte[] solution = backSubstitute(coeff, result, numSlots, resultBits);
-                    return new RibbonFilter(size, resultBits, numSlots, numStarts, seed, solution);
+                    return new RibbonNaiveFilter(size, resultBits, numSlots, numStarts, seed, solution);
                 }
             }
             overheadFactor *= OVERHEAD_GROWTH_FACTOR;
@@ -168,7 +168,7 @@ public class RibbonFilter implements Filter {
         buffer.put(solution);
     }
 
-    public static RibbonFilter deserialize(ByteBuffer buffer) {
+    public static RibbonNaiveFilter deserialize(ByteBuffer buffer) {
         if (buffer.remaining() < Integer.BYTES * 5 + Long.BYTES) {
             throw new IllegalArgumentException("Buffer too small");
         }
@@ -183,7 +183,7 @@ public class RibbonFilter implements Filter {
         }
         final byte[] solution = new byte[len];
         buffer.get(solution);
-        return new RibbonFilter(size, resultBits, numSlots, numStarts, seed, solution);
+        return new RibbonNaiveFilter(size, resultBits, numSlots, numStarts, seed, solution);
     }
 
     @Override
@@ -198,7 +198,7 @@ public class RibbonFilter implements Filter {
         dout.write(solution);
     }
 
-    public static RibbonFilter deserialize(InputStream in) throws IOException {
+    public static RibbonNaiveFilter deserialize(InputStream in) throws IOException {
         DataInputStream din = new DataInputStream(in);
         final int size = din.readInt();
         final int resultBits = din.readInt();
@@ -208,6 +208,6 @@ public class RibbonFilter implements Filter {
         final int len = din.readInt();
         final byte[] solution = new byte[len];
         din.readFully(solution);
-        return new RibbonFilter(size, resultBits, numSlots, numStarts, seed, solution);
+        return new RibbonNaiveFilter(size, resultBits, numSlots, numStarts, seed, solution);
     }
 }

@@ -8,6 +8,7 @@ import org.fastfilter.cuckoo.Cuckoo8;
 import org.fastfilter.cuckoo.CuckooPlus16;
 import org.fastfilter.cuckoo.CuckooPlus8;
 import org.fastfilter.gcs.GolombCompressedSet;
+import org.fastfilter.ribbon.RibbonNaiveFilter;
 import org.fastfilter.xor.*;
 import org.fastfilter.xorplus.XorPlus8;
 
@@ -87,12 +88,10 @@ public enum FilterType {
             return XorPlus8.construct(keys);
         }
     },
-    RIBBON {
+    RIBBON_NAIVE {
         @Override
         public Filter construct(long[] keys, int setting) {
-            // Fixed-width filter (like XOR_8/XOR_16/XOR_PLUS_8 above): setting
-            // is ignored, matching the r=8 default used for the Xor8 comparison.
-            return org.fastfilter.ribbon.RibbonFilter.construct(keys);
+            return RibbonNaiveFilter.construct(keys);
         }
     },
     CUCKOO_8 {
