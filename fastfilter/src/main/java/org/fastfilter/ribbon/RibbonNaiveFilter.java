@@ -19,6 +19,20 @@ import org.fastfilter.utils.Hash;
  * dependence among the equations) and is retried with a new seed, and -
  * if all seed attempts at a given slot count fail - with more slots.
  *
+ * Martin Dietzfelbinger, Stefan Walzer, [Efficient Gauss Elimination for
+ * Near-Quadratic Matrices with One Short Random Block per
+ * Row](https://arxiv.org/abs/1907.04750), ESA 2019.
+ *
+ * Peter C. Dillinger, Stefan Walzer, [Ribbon filter: practically smaller
+ * than Bloom and Xor](https://arxiv.org/abs/2103.02515), arXiv:2103.02515,
+ * 2021.
+ *
+ * This is the "naive" query implementation: each lookup does an O(w * r)
+ * per-column dot product against the solved band, rather than the
+ * Interleaved Column-Major Layout (ICML) the papers above use for fast
+ * queries. It is kept under this name so a future ICML-backed
+ * implementation can use the plain RibbonFilter / RIBBON name once it
+ * exists.
  */
 public class RibbonNaiveFilter implements Filter {
 
